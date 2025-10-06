@@ -1,0 +1,25 @@
+# 依赖包
+node_modules/
+
+# 测试文件
+test/
+
+# 上传文件
+uploads/
+
+# 日志文件
+logs/
+*.log
+
+# 环境变量
+.env
+
+# 系统文件
+.DS_Store
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 构建输出
+dist/
