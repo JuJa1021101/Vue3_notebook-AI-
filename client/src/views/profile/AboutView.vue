@@ -18,9 +18,13 @@
         class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center"
       >
         <div
-          class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          class="w-20 h-20 mx-auto mb-4 overflow-hidden rounded-2xl shadow-lg"
         >
-          <i class="fas fa-sticky-note text-white text-3xl"></i>
+          <img
+            src="/logo.png"
+            alt="智本集"
+            class="w-full h-full object-cover"
+          />
         </div>
         <h2 class="text-xl font-bold text-gray-900 mb-2">智本集</h2>
         <p class="text-sm text-gray-500 mb-1">版本 v1.0.0</p>

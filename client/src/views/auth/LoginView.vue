@@ -2,10 +2,8 @@
   <div class="bg-gray-50 h-full overflow-y-auto">
     <!-- Header -->
     <div class="gradient-bg px-4 py-12 text-white text-center">
-      <div
-        class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"
-      >
-        <i class="fas fa-sticky-note text-3xl"></i>
+      <div class="w-20 h-20 mx-auto mb-4 overflow-hidden rounded-2xl shadow-lg">
+        <img src="/logo.png" alt="智本集" class="w-full h-full object-cover" />
       </div>
       <h1 class="text-2xl font-bold mb-2">智本集</h1>
       <p class="text-white/80">记录生活，分享思考</p>
