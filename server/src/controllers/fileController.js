@@ -415,6 +415,47 @@ class FileController {
   }
 
   /**
+   * 代理获取文件内容（解决 CORS 问题）
+   * GET /api/files/proxy/:id
+   */
+  static async proxyFileContent(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const fileId = parseInt(ctx.params.id);
+
+      if (!fileId || isNaN(fileId)) {
+        return error(ctx, '文件ID无效', 400);
+      }
+
+      logger.info('代理获取文件内容请求', { userId, fileId });
+
+      const fileContent = await FileService.getFileContent(fileId, userId);
+
+      // 设置响应头
+      ctx.set('Content-Type', fileContent.contentType);
+      ctx.set('Content-Length', fileContent.content.length);
+      ctx.set('Cache-Control', 'public, max-age=3600');
+
+      // 返回文件内容
+      ctx.body = fileContent.content;
+
+      logger.info('代理获取文件内容成功', { userId, fileId });
+    } catch (err) {
+      logger.error('代理获取文件内容失败', {
+        error: err.message,
+        userId: ctx.state.userId,
+        fileId: ctx.params.id
+      });
+
+      if (err.message.includes('文件不存在')) {
+        return notFound(ctx, '文件不存在或无权限访问');
+      }
+
+      return error(ctx, '获取文件内容失败', 500);
+    }
+  }
+
+  /**
    * 获取存储统计
    * GET /api/files/stats
    */

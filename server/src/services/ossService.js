@@ -227,6 +227,36 @@ class OSSService {
       throw new Error('复制文件失败');
     }
   }
+
+  /**
+   * 获取文件内容（用于代理）
+   */
+  static async getFileContent(ossPath) {
+    try {
+      const client = createOSSClient();
+
+      // 如果传入的是完整 URL，提取 OSS 路径
+      let actualPath = ossPath;
+      if (ossPath.startsWith('http://') || ossPath.startsWith('https://')) {
+        const url = new URL(ossPath);
+        actualPath = url.pathname.substring(1); // 移除开头的 /
+      }
+
+      logger.info('开始从 OSS 获取文件内容', { ossPath: actualPath });
+
+      const result = await client.get(actualPath);
+
+      logger.info('从 OSS 获取文件内容成功', { ossPath: actualPath });
+
+      return result.content;
+    } catch (error) {
+      logger.error('从 OSS 获取文件内容失败', {
+        ossPath,
+        error: error.message
+      });
+      throw new Error('从 OSS 获取文件内容失败');
+    }
+  }
 }
 
 module.exports = OSSService;

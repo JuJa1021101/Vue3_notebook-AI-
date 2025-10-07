@@ -396,6 +396,45 @@ class FileService {
   }
 
   /**
+   * 获取文件内容（用于代理）
+   */
+  static async getFileContent(fileId, userId) {
+    try {
+      const file = await File.findOne({
+        where: {
+          id: fileId,
+          user_id: userId
+        }
+      });
+
+      if (!file) {
+        throw new Error('文件不存在或无权限访问');
+      }
+
+      const storageMode = getStorageMode();
+
+      if (storageMode === 'oss') {
+        // 从 OSS 获取文件内容
+        const content = await OSSService.getFileContent(file.file_path);
+        return {
+          content,
+          contentType: file.mime_type
+        };
+      } else {
+        // 从本地读取文件
+        const content = await fs.readFile(file.file_path);
+        return {
+          content,
+          contentType: file.mime_type
+        };
+      }
+    } catch (error) {
+      logger.error('获取文件内容失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 获取用户存储统计
    */
   static async getUserStorageStats(userId) {

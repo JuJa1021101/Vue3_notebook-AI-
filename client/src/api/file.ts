@@ -161,3 +161,14 @@ export const updateFilesNoteId = (fileIds: number[], noteId: number) => {
     data: { file_ids: fileIds, note_id: noteId }
   });
 };
+
+/**
+ * 通过代理获取文件内容（解决 CORS 问题）
+ */
+export const getFileContentProxy = (fileId: number) => {
+  return request({
+    url: `/files/proxy/${fileId}`,
+    method: 'GET',
+    responseType: 'text'
+  });
+};

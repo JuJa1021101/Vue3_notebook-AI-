@@ -18,6 +18,12 @@ router.use(authenticate);
 router.get('/stats', FileController.getStorageStats);
 
 /**
+ * 代理获取文件内容（解决 CORS 问题）
+ * GET /api/files/proxy/:id
+ */
+router.get('/proxy/:id', FileController.proxyFileContent);
+
+/**
  * 上传单个图片
  * POST /api/files/upload
  */

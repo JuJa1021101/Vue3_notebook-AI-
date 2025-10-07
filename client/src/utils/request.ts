@@ -71,7 +71,12 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
+  (response: AxiosResponse<any>) => {
+    // 如果是文本响应（如代理文件内容），直接返回
+    if (response.config.responseType === 'text' || typeof response.data === 'string') {
+      return response
+    }
+
     const res = response.data
 
     // 如果响应成功
