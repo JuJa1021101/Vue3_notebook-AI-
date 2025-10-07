@@ -7,6 +7,95 @@ const logger = require('../utils/logger');
  */
 class FileController {
   /**
+   * 上传附件（支持所有文件类型）
+   * POST /api/files/upload-attachment
+   */
+  static async uploadAttachment(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const file = ctx.req.file;
+      const { note_id, description } = ctx.request.body;
+
+      if (!file) {
+        return error(ctx, '请选择要上传的文件', 400);
+      }
+
+      logger.info('附件上传请求', {
+        userId,
+        originalName: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype,
+        noteId: note_id
+      });
+
+      // 上传文件（自动选择本地或 OSS）
+      const fileRecord = await FileService.uploadFile(userId, file, {
+        note_id: note_id ? parseInt(note_id) : null,
+        description
+      });
+
+      logger.info('附件上传成功', {
+        userId,
+        fileId: fileRecord.id,
+        filename: fileRecord.original_name,
+        storageMode: fileRecord.storage_mode
+      });
+
+      created(ctx, fileRecord, '附件上传成功');
+    } catch (err) {
+      logger.error('附件上传失败', {
+        error: err.message,
+        userId: ctx.state.userId
+      });
+
+      return error(ctx, '附件上传失败', 500);
+    }
+  }
+
+  /**
+   * 批量上传附件
+   * POST /api/files/upload-attachments
+   */
+  static async uploadMultipleAttachments(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const files = ctx.req.files;
+      const { note_id } = ctx.request.body;
+
+      if (!files || files.length === 0) {
+        return error(ctx, '请选择要上传的文件', 400);
+      }
+
+      logger.info('批量附件上传请求', {
+        userId,
+        fileCount: files.length,
+        noteId: note_id
+      });
+
+      // 批量上传文件
+      const fileRecords = await FileService.uploadMultipleFiles(userId, files, {
+        note_id: note_id ? parseInt(note_id) : null
+      });
+
+      logger.info('批量附件上传成功', {
+        userId,
+        uploadedCount: fileRecords.length
+      });
+
+      created(ctx, {
+        files: fileRecords,
+        count: fileRecords.length
+      }, '附件批量上传成功');
+    } catch (err) {
+      logger.error('批量附件上传失败', {
+        error: err.message,
+        userId: ctx.state.userId
+      });
+
+      return error(ctx, '批量附件上传失败', 500);
+    }
+  }
+  /**
    * 上传单个图片
    * POST /api/files/upload
    */
@@ -26,11 +115,11 @@ class FileController {
         mimetype: file.mimetype
       });
 
-      // 保存文件记录
-      const fileRecord = await FileService.saveFileRecord(userId, file);
+      // 上传文件（自动选择本地或 OSS）
+      const fileRecord = await FileService.uploadFile(userId, file);
 
-      // 如果需要压缩图片
-      if (ctx.request.body.compress === 'true') {
+      // 如果需要压缩图片（仅本地存储支持）
+      if (ctx.request.body.compress === 'true' && fileRecord.storage_mode === 'local') {
         try {
           const compressResult = await FileService.compressImage(file.path, {
             quality: parseInt(ctx.request.body.quality) || 80,
@@ -52,7 +141,8 @@ class FileController {
       logger.info('文件上传成功', {
         userId,
         fileId: fileRecord.id,
-        filename: fileRecord.filename
+        filename: fileRecord.filename,
+        storageMode: fileRecord.storage_mode
       });
 
       created(ctx, fileRecord, '文件上传成功');
@@ -84,10 +174,8 @@ class FileController {
         fileCount: files.length
       });
 
-      // 保存所有文件记录
-      const fileRecords = await Promise.all(
-        files.map(file => FileService.saveFileRecord(userId, file))
-      );
+      // 批量上传文件（自动选择本地或 OSS）
+      const fileRecords = await FileService.uploadMultipleFiles(userId, files);
 
       logger.info('批量文件上传成功', {
         userId,

@@ -1,7 +1,7 @@
 const Router = require('koa-router');
 const FileController = require('../controllers/fileController');
 const { authenticate } = require('../middleware/auth');
-const { upload } = require('../config/upload');
+const { upload, attachmentUpload } = require('../config/upload');
 
 const router = new Router({
   prefix: '/api/files'
@@ -28,6 +28,18 @@ router.post('/upload', upload.single('image'), FileController.uploadImage);
  * POST /api/files/upload-multiple
  */
 router.post('/upload-multiple', upload.array('images', 10), FileController.uploadMultipleImages);
+
+/**
+ * 上传单个附件（支持所有文件类型）
+ * POST /api/files/upload-attachment
+ */
+router.post('/upload-attachment', attachmentUpload.single('file'), FileController.uploadAttachment);
+
+/**
+ * 批量上传附件
+ * POST /api/files/upload-attachments
+ */
+router.post('/upload-attachments', attachmentUpload.array('files', 10), FileController.uploadMultipleAttachments);
 
 /**
  * 批量删除文件

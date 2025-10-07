@@ -120,3 +120,16 @@ export const getPopularTags = (limit?: number) => {
 export const getAllTags = () => {
   return request.get<ApiResponse<Array<{ id: number; name: string }>>>('/tags')
 }
+
+/**
+ * 获取用户统计数据
+ */
+export interface UserStatsResponse {
+  totalNotes: number
+  totalCategories: number
+  totalWords: number
+}
+
+export const getUserStats = () => {
+  return request.get<ApiResponse<UserStatsResponse>>('/notes/stats')
+}

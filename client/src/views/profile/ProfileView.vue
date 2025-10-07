@@ -23,7 +23,7 @@
             </div>
           </div>
         </div>
-        <button class="p-2" @click="$router.push('/profile/settings')">
+        <button class="p-2" @click="$router.push('/main/profile/settings')">
           <i class="fas fa-cog text-white"></i>
         </button>
       </div>
@@ -39,7 +39,7 @@
           <div class="text-white/80 text-xs">分类数量</div>
         </div>
         <div class="text-center">
-          <div class="text-2xl font-bold">{{ userStats.totalWords }}</div>
+          <div class="text-2xl font-bold">{{ formattedTotalWords }}</div>
           <div class="text-white/80 text-xs">总字数</div>
         </div>
       </div>
@@ -139,38 +139,6 @@
       </div>
     </div>
 
-    <!-- Other Options -->
-    <div class="px-4 pb-4">
-      <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-      >
-        <div
-          v-for="(item, index) in otherOptions"
-          :key="item.name"
-          @click="handleMenuClick(item.name)"
-          class="menu-item p-4 flex items-center justify-between cursor-pointer"
-          :class="{
-            'border-b border-gray-100': index < otherOptions.length - 1,
-            'text-red-500': item.name === 'logout',
-          }"
-        >
-          <div class="flex items-center space-x-3">
-            <i
-              :class="
-                item.icon +
-                (item.name === 'logout' ? ' text-red-500' : ' text-gray-400')
-              "
-            ></i>
-            <span
-              :class="item.name === 'logout' ? 'text-red-500' : 'text-gray-900'"
-              >{{ item.title }}</span
-            >
-          </div>
-          <i class="fas fa-chevron-right text-gray-300"></i>
-        </div>
-      </div>
-    </div>
-
     <!-- Achievement Badge -->
     <div class="px-4 pb-6">
       <div
@@ -197,6 +165,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import { toast } from "@/utils/toast";
+import { getUserStats } from "@/api/note";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -236,10 +205,37 @@ const userProfile = ref({
 });
 
 const userStats = ref({
-  totalNotes: 54,
-  totalCategories: 12,
-  totalWords: "8.5k",
+  totalNotes: 0,
+  totalCategories: 0,
+  totalWords: 0,
 });
+
+// 格式化数字显示
+const formatNumber = (num: number) => {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + "w";
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + "k";
+  }
+  return num.toString();
+};
+
+// 计算格式化后的总字数
+const formattedTotalWords = computed(() =>
+  formatNumber(userStats.value.totalWords)
+);
+
+// 加载用户统计数据
+const loadUserStats = async () => {
+  try {
+    const response = await getUserStats();
+    if (response.data.success) {
+      userStats.value = response.data.data;
+    }
+  } catch (error) {
+    console.error("获取用户统计数据失败:", error);
+  }
+};
 
 // 组件挂载时获取用户信息
 onMounted(async () => {
@@ -263,6 +259,9 @@ onMounted(async () => {
     // 尝试从 localStorage 恢复
     authStore.restoreUser();
   }
+
+  // 加载统计数据
+  await loadUserStats();
 });
 
 const quickActions = ref([
@@ -331,24 +330,6 @@ const menuItems = ref([
   },
 ]);
 
-const otherOptions = ref([
-  {
-    name: "help",
-    title: "帮助与反馈",
-    icon: "fas fa-question-circle",
-  },
-  {
-    name: "about",
-    title: "关于我们",
-    icon: "fas fa-info-circle",
-  },
-  {
-    name: "logout",
-    title: "退出登录",
-    icon: "fas fa-sign-out-alt",
-  },
-]);
-
 const storageInfo = ref({
   used: 2.3,
   total: 5,
@@ -365,13 +346,13 @@ const achievement = ref({
 const handleQuickAction = (action: string) => {
   switch (action) {
     case "favorites":
-      router.push("/notes?filter=starred");
+      router.push("/main/notes?filter=starred");
       break;
     case "recent":
-      router.push("/notes?filter=recent");
+      router.push("/main/notes?filter=recent");
       break;
     case "trash":
-      router.push("/notes?filter=deleted");
+      router.push("/main/notes?filter=deleted");
       break;
     case "export":
       // TODO: 导出功能
@@ -380,39 +361,22 @@ const handleQuickAction = (action: string) => {
   }
 };
 
-const handleMenuClick = async (menu: string) => {
+const handleMenuClick = (menu: string) => {
   switch (menu) {
     case "account":
-      router.push("/profile/account");
+      router.push("/main/profile/account");
       break;
     case "sync":
-      router.push("/profile/sync");
+      router.push("/main/profile/sync");
       break;
     case "theme":
-      router.push("/profile/theme");
+      router.push("/main/profile/theme");
       break;
     case "privacy":
-      router.push("/profile/privacy");
+      router.push("/main/profile/privacy");
       break;
     case "notification":
-      router.push("/profile/notification");
-      break;
-    case "help":
-      router.push("/profile/help");
-      break;
-    case "about":
-      router.push("/profile/about");
-      break;
-    case "logout":
-      if (confirm("确定要退出登录吗？")) {
-        try {
-          await authStore.logout();
-          router.push("/auth/login");
-        } catch (error) {
-          console.error("退出登录失败:", error);
-          toast.error("退出登录失败，请重试");
-        }
-      }
+      router.push("/main/profile/notification");
       break;
   }
 };
@@ -425,3 +389,9 @@ const handleAvatarError = (event: Event) => {
   console.warn("用户头像加载失败，使用默认头像");
 };
 </script>
+
+<style scoped>
+.gradient-bg {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffab91 100%);
+}
+</style>

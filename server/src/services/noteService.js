@@ -505,6 +505,63 @@ class NoteService {
       throw error;
     }
   }
+
+  /**
+   * 获取用户统计数据
+   * @param {number} userId - 用户ID
+   * @returns {Promise<Object>} 统计数据
+   */
+  async getUserStats(userId) {
+    try {
+      // 获取笔记总数（不包括已删除的）
+      const totalNotes = await Note.count({
+        where: {
+          user_id: userId,
+          is_deleted: false
+        }
+      });
+
+      // 获取分类总数
+      const totalCategories = await Category.count({
+        where: { user_id: userId }
+      });
+
+      // 获取所有笔记的内容文本，计算总字数（排除 base64 图片数据）
+      const notes = await Note.findAll({
+        where: {
+          user_id: userId,
+          is_deleted: false
+        },
+        attributes: ['content_text']
+      });
+
+      // 计算总字数，移除 base64 数据
+      let totalWords = 0;
+      notes.forEach(note => {
+        if (note.content_text) {
+          // 移除 base64 图片数据（data:image/...;base64,... 格式）
+          const textWithoutBase64 = note.content_text.replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '');
+          // 移除 HTML 标签
+          const textWithoutHtml = textWithoutBase64.replace(/<[^>]*>/g, '');
+          // 移除多余空白字符
+          const cleanText = textWithoutHtml.replace(/\s+/g, ' ').trim();
+          // 计算字数（中文按字符数，英文按单词数）
+          const chineseChars = cleanText.match(/[\u4e00-\u9fa5]/g) || [];
+          const englishWords = cleanText.match(/[a-zA-Z]+/g) || [];
+          totalWords += chineseChars.length + englishWords.length;
+        }
+      });
+
+      return {
+        totalNotes,
+        totalCategories,
+        totalWords
+      };
+    } catch (error) {
+      logger.error('获取用户统计数据失败:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new NoteService();

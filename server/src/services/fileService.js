@@ -4,37 +4,78 @@ const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../utils/logger');
 const { UPLOAD_PATH } = require('../config/upload');
+const { getStorageMode } = require('../config/oss');
+const OSSService = require('./ossService');
 
 /**
  * 文件服务
  */
 class FileService {
   /**
-   * 保存文件记录到数据库
+   * 保存文件记录到数据库（支持本地和 OSS）
    */
-  static async saveFileRecord(userId, fileData) {
+  static async saveFileRecord(userId, fileData, ossResult = null, options = {}) {
     try {
+      const { getFileType } = require('../config/oss');
+
       const file = await File.create({
         user_id: userId,
+        note_id: options.note_id || null,
         original_name: fileData.originalname,
-        filename: fileData.filename,
-        file_path: fileData.path,
+        file_path: ossResult ? ossResult.url : fileData.path,
         file_size: fileData.size,
-        mime_type: fileData.mimetype
+        mime_type: fileData.mimetype,
+        file_type: getFileType(fileData.mimetype)
       });
 
       return {
         id: file.id,
-        filename: file.filename,
         original_name: file.original_name,
+        file_path: file.file_path,
         file_size: file.file_size,
         mime_type: file.mime_type,
+        file_type: file.file_type,
         url: file.getUrl(),
+        storage_mode: file.getStorageMode(),
         created_at: file.created_at
       };
     } catch (error) {
       logger.error('保存文件记录失败:', error);
       throw new Error('保存文件记录失败');
+    }
+  }
+
+  /**
+   * 上传文件（自动选择本地或 OSS）
+   */
+  static async uploadFile(userId, fileData, options = {}) {
+    try {
+      const storageMode = getStorageMode();
+
+      if (storageMode === 'oss') {
+        // 上传到 OSS
+        const ossResult = await OSSService.uploadFile(userId, fileData);
+        return await this.saveFileRecord(userId, fileData, ossResult, options);
+      } else {
+        // 本地存储
+        return await this.saveFileRecord(userId, fileData, null, options);
+      }
+    } catch (error) {
+      logger.error('上传文件失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量上传文件
+   */
+  static async uploadMultipleFiles(userId, files, options = {}) {
+    try {
+      const uploadPromises = files.map(file => this.uploadFile(userId, file, options));
+      return await Promise.all(uploadPromises);
+    } catch (error) {
+      logger.error('批量上传文件失败:', error);
+      throw error;
     }
   }
 
@@ -202,7 +243,7 @@ class FileService {
   }
 
   /**
-   * 删除文件
+   * 删除文件（支持本地和 OSS）
    */
   static async deleteFile(fileId, userId) {
     try {
@@ -217,12 +258,21 @@ class FileService {
         throw new Error('文件不存在或无权限删除');
       }
 
-      // 删除物理文件
+      const storageMode = getStorageMode();
+
+      // 删除物理文件或 OSS 文件
       try {
-        await fs.unlink(file.file_path);
-        logger.info('物理文件删除成功', { path: file.file_path });
+        if (storageMode === 'oss') {
+          // 从 OSS 删除
+          await OSSService.deleteFile(file.file_path);
+          logger.info('OSS 文件删除成功', { path: file.file_path });
+        } else {
+          // 删除本地文件
+          await fs.unlink(file.file_path);
+          logger.info('本地文件删除成功', { path: file.file_path });
+        }
       } catch (error) {
-        logger.warn('物理文件删除失败，可能已不存在', { path: file.file_path });
+        logger.warn('文件删除失败，可能已不存在', { path: file.file_path });
       }
 
       // 删除数据库记录
@@ -239,7 +289,7 @@ class FileService {
   }
 
   /**
-   * 批量删除文件
+   * 批量删除文件（支持本地和 OSS）
    */
   static async deleteMultipleFiles(fileIds, userId) {
     try {
@@ -254,16 +304,29 @@ class FileService {
         throw new Error('没有找到可删除的文件');
       }
 
-      // 删除物理文件
-      const deletePromises = files.map(async (file) => {
-        try {
-          await fs.unlink(file.file_path);
-        } catch (error) {
-          logger.warn('物理文件删除失败', { path: file.file_path });
-        }
-      });
+      const storageMode = getStorageMode();
 
-      await Promise.all(deletePromises);
+      // 删除物理文件或 OSS 文件
+      if (storageMode === 'oss') {
+        // 批量删除 OSS 文件
+        const ossPaths = files.map(file => file.file_path);
+        try {
+          await OSSService.deleteMultipleFiles(ossPaths);
+          logger.info('批量删除 OSS 文件成功', { count: ossPaths.length });
+        } catch (error) {
+          logger.warn('批量删除 OSS 文件失败', { error: error.message });
+        }
+      } else {
+        // 批量删除本地文件
+        const deletePromises = files.map(async (file) => {
+          try {
+            await fs.unlink(file.file_path);
+          } catch (error) {
+            logger.warn('本地文件删除失败', { path: file.file_path });
+          }
+        });
+        await Promise.all(deletePromises);
+      }
 
       // 删除数据库记录
       await File.destroy({

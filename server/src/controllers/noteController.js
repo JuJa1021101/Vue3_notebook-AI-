@@ -258,6 +258,23 @@ class NoteController {
       return error(ctx, '获取所有标签失败', 500);
     }
   }
+
+  /**
+   * 获取用户统计数据
+   */
+  async getUserStats(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+
+      const stats = await noteService.getUserStats(userId);
+
+      logger.info(`用户 ${userId} 获取统计数据成功`);
+      return success(ctx, stats, '获取统计数据成功');
+    } catch (err) {
+      logger.error('获取统计数据失败:', err);
+      return error(ctx, '获取统计数据失败', 500);
+    }
+  }
 }
 
 module.exports = new NoteController();

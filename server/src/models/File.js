@@ -15,16 +15,20 @@ const File = sequelize.define('File', {
       key: 'id'
     }
   },
+  note_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'notes',
+      key: 'id'
+    }
+  },
   original_name: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  filename: {
-    type: DataTypes.STRING(255),
-    allowNull: false
-  },
   file_path: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.STRING(1000),
     allowNull: false
   },
   file_size: {
@@ -34,6 +38,10 @@ const File = sequelize.define('File', {
   mime_type: {
     type: DataTypes.STRING(100),
     allowNull: false
+  },
+  file_type: {
+    type: DataTypes.STRING(20),
+    defaultValue: 'other'
   }
 }, {
   tableName: 'files',
@@ -45,7 +53,10 @@ const File = sequelize.define('File', {
       fields: ['user_id']
     },
     {
-      fields: ['mime_type']
+      fields: ['note_id']
+    },
+    {
+      fields: ['file_type']
     }
   ]
 });
@@ -55,9 +66,40 @@ File.prototype.isImage = function () {
   return this.mime_type.startsWith('image/');
 };
 
+// 实例方法：检查是否为视频
+File.prototype.isVideo = function () {
+  return this.mime_type.startsWith('video/');
+};
+
+// 实例方法：检查是否为音频
+File.prototype.isAudio = function () {
+  return this.mime_type.startsWith('audio/');
+};
+
+// 实例方法：检查是否为文档
+File.prototype.isDocument = function () {
+  const docTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument'];
+  return docTypes.some(type => this.mime_type.includes(type)) || this.mime_type.includes('text/');
+};
+
 // 实例方法：获取文件URL
 File.prototype.getUrl = function () {
-  return `/uploads/${this.filename}`;
+  // 如果是完整的 URL（OSS），直接返回
+  if (this.file_path.startsWith('http://') || this.file_path.startsWith('https://')) {
+    return this.file_path;
+  }
+  // 否则是本地路径
+  return `/uploads/${this.file_path}`;
+};
+
+// 实例方法：获取文件名
+File.prototype.getFilename = function () {
+  return this.file_path.split('/').pop();
+};
+
+// 实例方法：判断存储模式
+File.prototype.getStorageMode = function () {
+  return (this.file_path.startsWith('http://') || this.file_path.startsWith('https://')) ? 'oss' : 'local';
 };
 
 module.exports = File;

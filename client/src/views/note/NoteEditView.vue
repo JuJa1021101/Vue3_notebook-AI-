@@ -114,6 +114,16 @@
         <i class="fas fa-paperclip text-lg"></i>
       </button>
     </div>
+
+    <!-- 确认离开对话框 -->
+    <ConfirmDialog
+      v-model="showConfirmDialog"
+      title="提示"
+      message="有未保存的内容，确定要离开吗？"
+      type="warning"
+      @confirm="handleConfirmLeave"
+      @cancel="handleCancelLeave"
+    />
   </div>
 </template>
 
@@ -125,7 +135,9 @@ import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getCategories } from "@/api/category";
 import type { Category } from "@/api/category";
 import { createNote, getNoteById, updateNote } from "@/api/note";
+import { uploadImage, uploadAttachment } from "@/api/file";
 import { toast } from "@/utils/toast";
+import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -308,8 +320,66 @@ const insertAudio = () => {
   toast.info("录音功能开发中...");
 };
 
-const insertAttachment = () => {
-  toast.info("附件功能开发中...");
+// 插入附件
+const insertAttachment = async () => {
+  const input = document.createElement("input");
+  input.setAttribute("type", "file");
+  input.setAttribute("accept", "*/*"); // 接受所有文件类型
+  input.click();
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (file) {
+      // 检查文件大小（限制为 50MB）
+      const maxSize = 50 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error("文件大小不能超过 50MB");
+        return;
+      }
+
+      try {
+        toast.info("正在上传附件...");
+
+        // 上传附件到服务器（OSS）
+        const noteId = isEdit.value
+          ? parseInt(route.params.id as string)
+          : undefined;
+        const response = await uploadAttachment(file, noteId);
+
+        if (response.data.success) {
+          const fileData = response.data.data;
+          const fileUrl = fileData.url;
+          const fileName = fileData.original_name;
+          const fileSize = (fileData.file_size / 1024).toFixed(2); // KB
+          const fileType = fileData.file_type;
+
+          // 根据文件类型插入不同的内容
+          const quill = quillEditor.value.getQuill();
+          const range = quill.getSelection(true);
+
+          if (fileType === "image") {
+            // 图片直接插入
+            quill.insertEmbed(range.index, "image", fileUrl);
+          } else if (fileType === "video") {
+            // 视频插入
+            quill.insertEmbed(range.index, "video", fileUrl);
+          } else {
+            // 其他文件插入为链接
+            const linkText = `📎 ${fileName} (${fileSize} KB)`;
+            quill.insertText(range.index, linkText, "link", fileUrl);
+          }
+
+          quill.setSelection(range.index + 1);
+          toast.success("附件上传成功");
+        } else {
+          toast.error(response.data.message || "附件上传失败");
+        }
+      } catch (error: any) {
+        console.error("附件上传失败:", error);
+        toast.error(error.response?.data?.message || "附件上传失败，请重试");
+      }
+    }
+  };
 };
 
 const saveNote = async () => {
@@ -361,14 +431,22 @@ const saveNote = async () => {
   }
 };
 
+const showConfirmDialog = ref(false);
+
 const goBack = () => {
   if (noteForm.value.title || noteForm.value.content) {
-    if (confirm("有未保存的内容，确定要离开吗？")) {
-      router.back();
-    }
+    showConfirmDialog.value = true;
   } else {
     router.back();
   }
+};
+
+const handleConfirmLeave = () => {
+  router.back();
+};
+
+const handleCancelLeave = () => {
+  showConfirmDialog.value = false;
 };
 </script>
 
