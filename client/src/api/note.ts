@@ -85,10 +85,31 @@ export const updateNote = (id: number, data: UpdateNoteRequest) => {
 }
 
 /**
- * 删除笔记
+ * 删除笔记（软删除）
  */
 export const deleteNote = (id: number) => {
   return request.delete<ApiResponse<null>>(`/notes/${id}`)
+}
+
+/**
+ * 获取已删除的笔记（回收站）
+ */
+export const getDeletedNotes = () => {
+  return request.get<ApiResponse<Note[]>>('/notes/trash')
+}
+
+/**
+ * 还原笔记
+ */
+export const restoreNote = (id: number) => {
+  return request.post<ApiResponse<null>>(`/notes/${id}/restore`)
+}
+
+/**
+ * 彻底删除笔记（永久删除）
+ */
+export const permanentlyDeleteNotes = (ids: number[]) => {
+  return request.post<ApiResponse<null>>('/notes/permanently-delete', { ids })
 }
 
 /**

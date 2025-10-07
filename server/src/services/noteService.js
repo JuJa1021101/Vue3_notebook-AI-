@@ -562,6 +562,125 @@ class NoteService {
       throw error;
     }
   }
+
+  /**
+   * 获取回收站笔记列表
+   * @param {number} userId - 用户ID
+   * @returns {Promise<Array>} 已删除的笔记列表
+   */
+  async getDeletedNotes(userId) {
+    try {
+      const notes = await Note.findAll({
+        where: {
+          user_id: userId,
+          is_deleted: true
+        },
+        include: [
+          {
+            model: Category,
+            as: 'category',
+            attributes: ['id', 'name', 'icon', 'color']
+          },
+          {
+            model: Tag,
+            as: 'tags',
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          }
+        ],
+        order: [['updated_at', 'DESC']]
+      });
+
+      return notes;
+    } catch (error) {
+      logger.error('获取回收站笔记失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 还原笔记
+   * @param {number} noteId - 笔记ID
+   * @param {number} userId - 用户ID
+   * @returns {Promise<boolean>} 还原结果
+   */
+  async restoreNote(noteId, userId) {
+    try {
+      const note = await Note.findOne({
+        where: {
+          id: noteId,
+          user_id: userId,
+          is_deleted: true
+        }
+      });
+
+      if (!note) {
+        throw new Error('笔记不存在');
+      }
+
+      await note.update({
+        is_deleted: false
+      });
+
+      logger.info(`笔记 ${noteId} 已被用户 ${userId} 还原`);
+      return true;
+    } catch (error) {
+      logger.error('还原笔记失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 彻底删除笔记（永久删除）
+   * @param {Array} noteIds - 笔记ID数组
+   * @param {number} userId - 用户ID
+   * @returns {Promise<Object>} 删除结果
+   */
+  async permanentlyDeleteNotes(noteIds, userId) {
+    try {
+      // 查找所有符合条件的笔记（必须是已删除状态且属于当前用户）
+      const notes = await Note.findAll({
+        where: {
+          id: { [Op.in]: noteIds },
+          user_id: userId,
+          is_deleted: true
+        }
+      });
+
+      if (notes.length === 0) {
+        return {
+          deleted_count: 0,
+          message: '没有找到可删除的笔记'
+        };
+      }
+
+      // 删除笔记的标签关联
+      await NoteTag.destroy({
+        where: {
+          note_id: { [Op.in]: notes.map(note => note.id) }
+        }
+      });
+
+      // 永久删除笔记
+      const deletedCount = await Note.destroy({
+        where: {
+          id: { [Op.in]: notes.map(note => note.id) },
+          user_id: userId,
+          is_deleted: true
+        }
+      });
+
+      logger.info(`用户 ${userId} 彻底删除了 ${deletedCount} 篇笔记`);
+
+      return {
+        deleted_count: deletedCount,
+        message: `成功删除 ${deletedCount} 篇笔记`
+      };
+    } catch (error) {
+      logger.error('彻底删除笔记失败:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new NoteService();

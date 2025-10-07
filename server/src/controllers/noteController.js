@@ -198,6 +198,72 @@ class NoteController {
   }
 
   /**
+   * 获取已删除的笔记（回收站）
+   */
+  async getDeletedNotes(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+
+      const notes = await noteService.getDeletedNotes(userId);
+
+      logger.info(`用户 ${userId} 获取回收站笔记，共 ${notes.length} 条`);
+      return success(ctx, notes, '获取回收站笔记成功');
+    } catch (err) {
+      logger.error('获取回收站笔记失败:', err);
+      return error(ctx, '获取回收站笔记失败', 500);
+    }
+  }
+
+  /**
+   * 还原笔记
+   */
+  async restoreNote(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+      const noteId = parseInt(ctx.params.id);
+
+      if (!noteId || noteId <= 0) {
+        return error(ctx, '无效的笔记ID', 400);
+      }
+
+      await noteService.restoreNote(noteId, userId);
+
+      logger.info(`用户 ${userId} 还原笔记 ${noteId} 成功`);
+      return success(ctx, null, '笔记已还原');
+    } catch (err) {
+      logger.error('还原笔记失败:', err);
+
+      if (err.message === '笔记不存在') {
+        return error(ctx, err.message, 404);
+      }
+
+      return error(ctx, '还原笔记失败', 500);
+    }
+  }
+
+  /**
+   * 彻底删除笔记（永久删除）
+   */
+  async permanentlyDeleteNotes(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+      const { ids } = ctx.request.body;
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return error(ctx, '请提供要删除的笔记ID列表', 400);
+      }
+
+      const result = await noteService.permanentlyDeleteNotes(ids, userId);
+
+      logger.info(`用户 ${userId} 彻底删除 ${result.deleted_count} 篇笔记`);
+      return success(ctx, result, '笔记已彻底删除');
+    } catch (err) {
+      logger.error('彻底删除笔记失败:', err);
+      return error(ctx, '彻底删除笔记失败', 500);
+    }
+  }
+
+  /**
    * 搜索笔记
    */
   async searchNotes(ctx) {

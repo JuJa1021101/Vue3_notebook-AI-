@@ -352,7 +352,7 @@ const handleQuickAction = (action: string) => {
       router.push("/main/notes?filter=recent");
       break;
     case "trash":
-      router.push("/main/notes?filter=deleted");
+      router.push("/main/notes/trash");
       break;
     case "export":
       // TODO: 导出功能

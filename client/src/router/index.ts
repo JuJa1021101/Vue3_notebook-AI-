@@ -62,6 +62,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/note/NoteListView.vue')
       },
       {
+        path: 'notes/trash',
+        name: 'Trash',
+        component: () => import('@/views/note/TrashView.vue')
+      },
+      {
         path: 'search',
         name: 'Search',
         component: () => import('@/views/search/SearchView.vue')

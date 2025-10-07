@@ -11,11 +11,14 @@ router.use(authenticate);
 
 // 笔记相关路由
 router.get('/notes/stats', noteController.getUserStats);          // 获取用户统计数据
+router.get('/notes/trash', noteController.getDeletedNotes);       // 获取回收站笔记
+router.post('/notes/permanently-delete', noteController.permanentlyDeleteNotes); // 彻底删除笔记
 router.get('/notes', noteController.getNotes);                    // 获取笔记列表
 router.post('/notes', noteController.createNote);                 // 创建笔记
 router.get('/notes/:id', noteController.getNoteById);             // 获取笔记详情
 router.put('/notes/:id', noteController.updateNote);              // 更新笔记
-router.delete('/notes/:id', noteController.deleteNote);           // 删除笔记
+router.delete('/notes/:id', noteController.deleteNote);           // 删除笔记（软删除）
+router.post('/notes/:id/restore', noteController.restoreNote);    // 还原笔记
 
 // 搜索相关路由
 router.get('/search', noteController.searchNotes);                // 搜索笔记
