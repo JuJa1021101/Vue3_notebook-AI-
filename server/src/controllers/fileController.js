@@ -370,6 +370,51 @@ class FileController {
   }
 
   /**
+   * 批量更新文件的 note_id
+   * POST /api/files/update-note-id
+   */
+  static async updateFilesNoteId(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const { file_ids, note_id } = ctx.request.body;
+
+      if (!file_ids || !Array.isArray(file_ids) || file_ids.length === 0) {
+        return error(ctx, '请提供要更新的文件ID列表', 400);
+      }
+
+      if (!note_id || isNaN(parseInt(note_id))) {
+        return error(ctx, '请提供有效的笔记ID', 400);
+      }
+
+      logger.info('批量更新文件note_id请求', {
+        userId,
+        fileCount: file_ids.length,
+        noteId: note_id
+      });
+
+      const result = await FileService.updateFilesNoteId(file_ids, parseInt(note_id), userId);
+
+      logger.info('批量更新文件note_id成功', {
+        userId,
+        updatedCount: result.updated_count
+      });
+
+      success(ctx, result, '文件关联笔记成功');
+    } catch (err) {
+      logger.error('批量更新文件note_id失败', {
+        error: err.message,
+        userId: ctx.state.userId
+      });
+
+      if (err.message.includes('没有找到')) {
+        return notFound(ctx, '没有找到可更新的文件');
+      }
+
+      return error(ctx, '文件关联笔记失败', 500);
+    }
+  }
+
+  /**
    * 获取存储统计
    * GET /api/files/stats
    */

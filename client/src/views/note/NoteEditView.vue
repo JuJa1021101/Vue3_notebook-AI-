@@ -516,11 +516,26 @@ const saveNote = async () => {
         toast.error(response.data.message || "更新失败");
       }
     } else {
+      // 新建笔记：先保存笔记，再关联附件
       const response = await createNote(noteData);
 
       if (response.data.success) {
+        const newNoteId = response.data.data.id;
+
+        // 如果有附件，关联到新创建的笔记
+        if (attachments.value.length > 0) {
+          try {
+            const fileIds = attachments.value.map((a) => a.id);
+            await updateFilesNoteId(fileIds, newNoteId);
+            console.log("附件已关联到笔记");
+          } catch (error: any) {
+            console.error("关联附件失败:", error);
+            toast.error("笔记保存成功，但附件关联失败");
+          }
+        }
+
         toast.success("保存成功");
-        router.push(`/main/notes/${response.data.data.id}`);
+        router.push(`/main/notes/${newNoteId}`);
       } else {
         toast.error(response.data.message || "保存失败");
       }

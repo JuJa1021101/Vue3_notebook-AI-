@@ -60,6 +60,12 @@ router.post('/upload-attachments', attachmentUpload.array('files', 10), FileCont
 router.post('/delete-multiple', FileController.deleteMultipleFiles);
 
 /**
+ * 批量更新文件的 note_id
+ * POST /api/files/update-note-id
+ */
+router.post('/update-note-id', FileController.updateFilesNoteId);
+
+/**
  * 获取用户的文件列表
  * GET /api/files
  */

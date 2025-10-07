@@ -150,3 +150,14 @@ export const getStorageStats = () => {
     method: 'GET'
   });
 };
+
+/**
+ * 批量更新文件的 note_id
+ */
+export const updateFilesNoteId = (fileIds: number[], noteId: number) => {
+  return request({
+    url: '/files/update-note-id',
+    method: 'POST',
+    data: { file_ids: fileIds, note_id: noteId }
+  });
+};

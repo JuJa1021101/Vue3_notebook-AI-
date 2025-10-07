@@ -353,6 +353,49 @@ class FileService {
   }
 
   /**
+   * 批量更新文件的 note_id
+   */
+  static async updateFilesNoteId(fileIds, noteId, userId) {
+    try {
+      const files = await File.findAll({
+        where: {
+          id: fileIds,
+          user_id: userId
+        }
+      });
+
+      if (files.length === 0) {
+        throw new Error('没有找到可更新的文件');
+      }
+
+      // 更新数据库记录
+      const [updatedCount] = await File.update(
+        { note_id: noteId },
+        {
+          where: {
+            id: fileIds,
+            user_id: userId
+          }
+        }
+      );
+
+      logger.info('批量更新文件note_id成功', {
+        userId,
+        noteId,
+        updatedCount
+      });
+
+      return {
+        message: '文件关联笔记成功',
+        updated_count: updatedCount
+      };
+    } catch (error) {
+      logger.error('批量更新文件note_id失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 获取用户存储统计
    */
   static async getUserStorageStats(userId) {
