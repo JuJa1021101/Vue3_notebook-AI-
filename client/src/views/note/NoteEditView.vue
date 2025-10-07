@@ -122,7 +122,7 @@
     >
       <!-- 切换按钮（眼睛图标） - 在下面 -->
       <button
-        @click="showFloatingButtons = !showFloatingButtons"
+        @click="debouncedToggleFloatingButtons"
         class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all hover:scale-110"
         :title="showFloatingButtons ? '隐藏工具栏' : '显示工具栏'"
       >
@@ -238,6 +238,26 @@ const attachments = ref<Attachment[]>([]);
 const showPreview = ref(false);
 const previewAttachment = ref<Attachment | null>(null);
 const showFloatingButtons = ref(true); // 控制浮动按钮显示/隐藏
+
+// 节流函数 - 第一次立即执行，后续点击在延迟时间内被忽略
+const throttle = (fn: Function, delay: number) => {
+  let lastTime = 0;
+  return function (this: any, ...args: any[]) {
+    const now = Date.now();
+    if (now - lastTime >= delay) {
+      lastTime = now;
+      fn.apply(this, args);
+    }
+  };
+};
+
+// 切换浮动按钮显示/隐藏
+const toggleFloatingButtons = () => {
+  showFloatingButtons.value = !showFloatingButtons.value;
+};
+
+// 节流版本的切换函数（1秒延迟）
+const debouncedToggleFloatingButtons = throttle(toggleFloatingButtons, 1000);
 
 // Quill 工具栏配置
 const toolbarOptions = [
