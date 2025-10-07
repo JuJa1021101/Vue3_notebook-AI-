@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div class="bg-gray-50 h-full flex flex-col">
     <!-- Header -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100">
+    <div class="bg-white px-4 py-3 border-b border-gray-100 flex-shrink-0">
       <div class="flex items-center justify-between">
         <button @click="$router.back()" class="p-2 -ml-2">
           <i class="fas fa-arrow-left text-gray-600"></i>
@@ -26,59 +26,45 @@
       </div>
     </div>
 
-    <div v-if="note" class="p-4">
-      <!-- Note Header -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ note.title }}</h1>
-        <div class="flex items-center space-x-4 text-sm text-gray-500">
-          <span>{{ note.createdAt }}</span>
-          <span>{{ note.updatedAt !== note.createdAt ? "已编辑" : "" }}</span>
-          <span
-            class="px-2 py-1 rounded-full text-xs"
-            :style="{
-              backgroundColor: note.categoryColor + '20',
-              color: note.categoryColor,
-            }"
-          >
-            {{ note.categoryName }}
-          </span>
+    <!-- Content Area -->
+    <div v-if="note" class="flex-1 overflow-y-auto bg-white">
+      <div class="p-4">
+        <!-- Note Header -->
+        <div class="mb-6">
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">
+            {{ note.title }}
+          </h1>
+          <div class="flex items-center space-x-4 text-sm text-gray-500">
+            <span>{{ note.createdAt }}</span>
+            <span>{{ note.updatedAt !== note.createdAt ? "已编辑" : "" }}</span>
+            <span
+              class="px-2 py-1 rounded-full text-xs"
+              :style="{
+                backgroundColor: note.categoryColor + '20',
+                color: note.categoryColor,
+              }"
+            >
+              {{ note.categoryName }}
+            </span>
+          </div>
+          <div v-if="note.tags.length > 0" class="flex flex-wrap gap-2 mt-2">
+            <span
+              v-for="tag in note.tags"
+              :key="tag"
+              class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+            >
+              #{{ tag }}
+            </span>
+          </div>
         </div>
-        <div v-if="note.tags.length > 0" class="flex flex-wrap gap-2 mt-2">
-          <span
-            v-for="tag in note.tags"
-            :key="tag"
-            class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
-          >
-            #{{ tag }}
-          </span>
-        </div>
-      </div>
 
-      <!-- Note Content -->
-      <div class="prose prose-sm max-w-none" v-html="note.content"></div>
-
-      <!-- Attachments -->
-      <div v-if="attachments.length > 0" class="mt-6">
-        <div class="flex items-center mb-3">
-          <i class="fas fa-paperclip text-gray-400 mr-2"></i>
-          <span class="text-sm font-medium text-gray-700"
-            >附件 ({{ attachments.length }})</span
-          >
-        </div>
-        <div class="space-y-2">
-          <AttachmentCard
-            v-for="attachment in attachments"
-            :key="attachment.id"
-            :attachment="attachment"
-            :show-delete="false"
-            @preview="handlePreviewAttachment"
-          />
-        </div>
+        <!-- Note Content -->
+        <div class="prose prose-sm max-w-none" v-html="note.content"></div>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-else class="flex items-center justify-center h-full">
+    <div v-else class="flex-1 flex items-center justify-center">
       <div class="text-center">
         <div
           class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"
@@ -87,11 +73,35 @@
       </div>
     </div>
 
+    <!-- Attachments -->
+    <div
+      v-if="note && attachments.length > 0"
+      class="bg-white px-4 py-3 border-t border-gray-100 flex-shrink-0"
+      style="padding-right: 100px"
+    >
+      <div class="flex items-center mb-2">
+        <i class="fas fa-paperclip text-gray-400 mr-2"></i>
+        <span class="text-sm font-medium text-gray-700"
+          >附件 ({{ attachments.length }})</span
+        >
+      </div>
+      <div class="space-y-2 max-h-40 overflow-y-auto pr-2 relative z-10">
+        <AttachmentCard
+          v-for="attachment in attachments"
+          :key="attachment.id"
+          :attachment="attachment"
+          :show-delete="false"
+          @preview="handlePreviewAttachment"
+        />
+      </div>
+    </div>
+
     <!-- Floating Edit Button -->
     <button
       v-if="note"
       @click="editNote"
-      class="fixed bottom-24 right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center"
+      class="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all hover:scale-110 z-20"
+      title="编辑笔记"
     >
       <i class="fas fa-edit text-lg"></i>
     </button>

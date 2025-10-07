@@ -195,7 +195,12 @@ import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getCategories } from "@/api/category";
 import type { Category } from "@/api/category";
 import { createNote, getNoteById, updateNote } from "@/api/note";
-import { uploadAttachment, deleteFile, getNoteAttachments } from "@/api/file";
+import {
+  uploadAttachment,
+  deleteFile,
+  getNoteAttachments,
+  updateFilesNoteId,
+} from "@/api/file";
 import { toast } from "@/utils/toast";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import AttachmentCard from "@/components/note/AttachmentCard.vue";
