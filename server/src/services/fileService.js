@@ -168,7 +168,8 @@ class FileService {
       const {
         page = 1,
         limit = 20,
-        mime_type = null
+        mime_type = null,
+        note_id = null
       } = options;
 
       const offset = (page - 1) * limit;
@@ -176,6 +177,9 @@ class FileService {
       const where = { user_id: userId };
       if (mime_type) {
         where.mime_type = mime_type;
+      }
+      if (note_id !== null) {
+        where.note_id = note_id;
       }
 
       const { count, rows } = await File.findAndCountAll({
@@ -187,10 +191,12 @@ class FileService {
 
       const files = rows.map(file => ({
         id: file.id,
-        filename: file.filename,
         original_name: file.original_name,
+        file_path: file.file_path,
         file_size: file.file_size,
         mime_type: file.mime_type,
+        file_type: file.file_type,
+        note_id: file.note_id,
         url: file.getUrl(),
         created_at: file.created_at
       }));

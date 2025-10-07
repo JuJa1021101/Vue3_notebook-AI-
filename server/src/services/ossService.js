@@ -86,11 +86,18 @@ class OSSService {
     try {
       const client = createOSSClient();
 
-      logger.info('开始从 OSS 删除文件', { ossPath });
+      // 如果传入的是完整 URL，提取 OSS 路径
+      let actualPath = ossPath;
+      if (ossPath.startsWith('http://') || ossPath.startsWith('https://')) {
+        const url = new URL(ossPath);
+        actualPath = url.pathname.substring(1); // 移除开头的 /
+      }
 
-      await client.delete(ossPath);
+      logger.info('开始从 OSS 删除文件', { ossPath: actualPath });
 
-      logger.info('从 OSS 删除文件成功', { ossPath });
+      await client.delete(actualPath);
+
+      logger.info('从 OSS 删除文件成功', { ossPath: actualPath });
 
       return { success: true };
     } catch (error) {
@@ -109,9 +116,18 @@ class OSSService {
     try {
       const client = createOSSClient();
 
-      logger.info('开始批量删除 OSS 文件', { count: ossPaths.length });
+      // 如果传入的是完整 URL，提取 OSS 路径
+      const actualPaths = ossPaths.map(ossPath => {
+        if (ossPath.startsWith('http://') || ossPath.startsWith('https://')) {
+          const url = new URL(ossPath);
+          return url.pathname.substring(1); // 移除开头的 /
+        }
+        return ossPath;
+      });
 
-      const result = await client.deleteMulti(ossPaths);
+      logger.info('开始批量删除 OSS 文件', { count: actualPaths.length });
+
+      const result = await client.deleteMulti(actualPaths);
 
       logger.info('批量删除 OSS 文件成功', {
         deleted: result.deleted.length

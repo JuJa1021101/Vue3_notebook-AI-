@@ -50,6 +50,7 @@ export const uploadAttachment = (file: File, noteId?: number) => {
     url: '/files/upload-attachment',
     method: 'POST',
     data: formData,
+    timeout: 60000, // 60秒超时，适合大文件上传
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -92,6 +93,20 @@ export const getFiles = (params?: {
     url: '/files',
     method: 'GET',
     params
+  });
+};
+
+/**
+ * 获取笔记的附件列表
+ */
+export const getNoteAttachments = (noteId: number) => {
+  return request({
+    url: '/files',
+    method: 'GET',
+    params: {
+      note_id: noteId,
+      limit: 100 // 获取所有附件
+    }
   });
 };
 

@@ -56,6 +56,25 @@
 
       <!-- Note Content -->
       <div class="prose prose-sm max-w-none" v-html="note.content"></div>
+
+      <!-- Attachments -->
+      <div v-if="attachments.length > 0" class="mt-6">
+        <div class="flex items-center mb-3">
+          <i class="fas fa-paperclip text-gray-400 mr-2"></i>
+          <span class="text-sm font-medium text-gray-700"
+            >附件 ({{ attachments.length }})</span
+          >
+        </div>
+        <div class="space-y-2">
+          <AttachmentCard
+            v-for="attachment in attachments"
+            :key="attachment.id"
+            :attachment="attachment"
+            :show-delete="false"
+            @preview="handlePreviewAttachment"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -76,6 +95,13 @@
     >
       <i class="fas fa-edit text-lg"></i>
     </button>
+
+    <!-- Attachment Preview Dialog -->
+    <AttachmentPreview
+      :visible="showPreview"
+      :attachment="previewAttachment"
+      @update:visible="showPreview = $event"
+    />
   </div>
 </template>
 
@@ -84,7 +110,20 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getNoteById } from "@/api/note";
 import type { Note } from "@/api/note";
+import { getNoteAttachments, deleteFile } from "@/api/file";
 import { toast } from "@/utils/toast";
+import AttachmentCard from "@/components/note/AttachmentCard.vue";
+import AttachmentPreview from "@/components/note/AttachmentPreview.vue";
+
+interface Attachment {
+  id: number;
+  original_name: string;
+  file_path: string;
+  file_size: number;
+  file_type: string;
+  mime_type: string;
+  url: string;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -104,9 +143,13 @@ interface LocalNote {
 }
 
 const note = ref<LocalNote | null>(null);
+const attachments = ref<Attachment[]>([]);
+const showPreview = ref(false);
+const previewAttachment = ref<Attachment | null>(null);
 
 onMounted(() => {
   loadNote();
+  loadAttachments();
 });
 
 // 格式化时间显示
@@ -168,6 +211,39 @@ const showMenu = () => {
 
 const editNote = () => {
   router.push(`/main/notes/${note.value?.id}/edit`);
+};
+
+const loadAttachments = async () => {
+  try {
+    const noteId = parseInt(route.params.id as string);
+    const response = await getNoteAttachments(noteId);
+
+    if (response.data.success) {
+      attachments.value = response.data.data.files;
+    }
+  } catch (error: any) {
+    console.error("加载附件失败:", error);
+  }
+};
+
+const handleDeleteAttachment = async (fileId: number) => {
+  try {
+    const response = await deleteFile(fileId);
+    if (response.data.success) {
+      attachments.value = attachments.value.filter((a) => a.id !== fileId);
+      toast.success("附件删除成功");
+    } else {
+      toast.error(response.data.message || "删除失败");
+    }
+  } catch (error: any) {
+    console.error("删除附件失败:", error);
+    toast.error(error.response?.data?.message || "删除失败，请重试");
+  }
+};
+
+const handlePreviewAttachment = (attachment: Attachment) => {
+  previewAttachment.value = attachment;
+  showPreview.value = true;
 };
 </script>
 

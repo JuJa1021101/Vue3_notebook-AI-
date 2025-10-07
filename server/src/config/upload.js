@@ -22,6 +22,8 @@ const ALLOWED_FILE_TYPES = {
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'text/plain',
     'text/markdown',
+    'text/x-markdown',
+    'application/markdown',
     'text/csv'
   ],
   archive: ['application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed']
@@ -84,7 +86,14 @@ const storage = multer.diskStorage({
 // 配置 multer 存储（用于附件上传，支持所有类型）
 const attachmentStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const fileType = getFileTypeCategory(file.mimetype);
+    // 优先使用 MIME 类型判断，如果失败则使用扩展名判断
+    let fileType = getFileTypeCategory(file.mimetype);
+
+    // 如果 MIME 类型无法识别（如 application/octet-stream），使用扩展名判断
+    if (fileType === 'other') {
+      fileType = getFileTypeCategoryByExtension(file.originalname) || 'other';
+    }
+
     const uploadDir = path.join(UPLOAD_PATH, fileType + 's');
     cb(null, uploadDir);
   },
@@ -103,13 +112,67 @@ const imageFilter = (req, file, cb) => {
   }
 };
 
+// 根据文件扩展名获取文件类型分类
+const getFileTypeCategoryByExtension = (filename) => {
+  const ext = path.extname(filename).toLowerCase();
+
+  const extensionMap = {
+    // 图片
+    '.jpg': 'image', '.jpeg': 'image', '.png': 'image', '.gif': 'image',
+    '.webp': 'image', '.svg': 'image', '.bmp': 'image',
+    // 视频
+    '.mp4': 'video', '.avi': 'video', '.mov': 'video', '.mkv': 'video',
+    '.webm': 'video', '.flv': 'video',
+    // 音频
+    '.mp3': 'audio', '.wav': 'audio', '.flac': 'audio', '.aac': 'audio',
+    '.ogg': 'audio', '.m4a': 'audio',
+    // 文档
+    '.pdf': 'document', '.doc': 'document', '.docx': 'document',
+    '.xls': 'document', '.xlsx': 'document', '.ppt': 'document', '.pptx': 'document',
+    '.txt': 'document', '.md': 'document', '.markdown': 'document', '.csv': 'document',
+    // 压缩包
+    '.zip': 'archive', '.rar': 'archive', '.7z': 'archive', '.tar': 'archive', '.gz': 'archive'
+  };
+
+  return extensionMap[ext] || null;
+};
+
+// 检查文件扩展名是否被支持
+const isExtensionAllowed = (filename) => {
+  return getFileTypeCategoryByExtension(filename) !== null;
+};
+
 // 文件过滤器（所有支持的类型）
 const attachmentFilter = (req, file, cb) => {
   const allowedTypes = getAllAllowedTypes();
-  if (allowedTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  // 详细日志：记录文件信息
+  console.log('🔍 附件过滤器检查:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    extension: ext,
+    size: file.size,
+    encoding: file.encoding
+  });
+
+  // 优先检查 MIME 类型
+  const mimeTypeAllowed = allowedTypes.includes(file.mimetype);
+  // 其次检查文件扩展名（处理中文文件名或 MIME 类型识别错误的情况）
+  const extensionAllowed = isExtensionAllowed(file.originalname);
+
+  console.log('📋 MIME 类型检查:', mimeTypeAllowed ? '✅ 通过' : '❌ 未通过');
+  console.log('📋 扩展名检查:', extensionAllowed ? '✅ 通过' : '❌ 未通过');
+
+  // 只要 MIME 类型或扩展名有一个匹配就允许上传
+  if (mimeTypeAllowed || extensionAllowed) {
+    console.log('✅ 文件类型验证通过');
     cb(null, true);
   } else {
-    cb(new Error(`不支持的文件类型: ${file.mimetype}`), false);
+    const errorMsg = `不支持的文件类型: ${file.mimetype}, 扩展名: ${ext}`;
+    console.error('❌ 文件类型验证失败:', errorMsg);
+    console.log('💡 支持的扩展名: .md, .pdf, .doc, .docx, .txt, .jpg, .png, .mp4, .mp3, .zip 等');
+    cb(new Error(errorMsg), false);
   }
 };
 
@@ -140,6 +203,8 @@ module.exports = {
   ALLOWED_FILE_TYPES,
   ensureUploadDir,
   generateFilename,
+  getFileTypeCategoryByExtension,
+  isExtensionAllowed,
   getFileTypeCategory,
   getAllAllowedTypes
 };

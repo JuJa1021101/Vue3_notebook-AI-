@@ -16,9 +16,25 @@ class FileController {
       const file = ctx.req.file;
       const { note_id, description } = ctx.request.body;
 
+      console.log('📤 收到附件上传请求');
+      console.log('👤 用户ID:', userId);
+      console.log('📁 文件对象:', file ? '存在' : '不存在');
+
       if (!file) {
+        console.error('❌ 没有接收到文件');
+        // 检查是否是 multer 错误
+        if (ctx.req.fileValidationError) {
+          return error(ctx, ctx.req.fileValidationError, 400);
+        }
         return error(ctx, '请选择要上传的文件', 400);
       }
+
+      console.log('📄 文件详情:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        path: file.path
+      });
 
       logger.info('附件上传请求', {
         userId,
@@ -43,12 +59,23 @@ class FileController {
 
       created(ctx, fileRecord, '附件上传成功');
     } catch (err) {
+      console.error('❌ 附件上传异常:', err);
+
       logger.error('附件上传失败', {
         error: err.message,
+        stack: err.stack,
         userId: ctx.state.userId
       });
 
-      return error(ctx, '附件上传失败', 500);
+      // 特殊处理 multer 错误
+      if (err.name === 'MulterError') {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return error(ctx, '文件大小超过限制（最大50MB）', 400);
+        }
+        return error(ctx, `文件上传错误: ${err.message}`, 400);
+      }
+
+      return error(ctx, err.message || '附件上传失败', 500);
     }
   }
 
@@ -203,12 +230,13 @@ class FileController {
   static async getFiles(ctx) {
     try {
       const userId = ctx.state.userId;
-      const { page, limit, mime_type } = ctx.query;
+      const { page, limit, mime_type, note_id } = ctx.query;
 
       const options = {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 20,
-        mime_type: mime_type || null
+        mime_type: mime_type || null,
+        note_id: note_id ? parseInt(note_id) : null
       };
 
       logger.info('获取文件列表请求', { userId, options });

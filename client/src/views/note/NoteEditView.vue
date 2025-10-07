@@ -38,7 +38,7 @@
             v-model="noteForm.categoryId"
             class="text-sm text-gray-600 border-none outline-none bg-transparent"
           >
-            <option value="">选择分类</option>
+            <option value="" disabled>选择分类</option>
             <option
               v-for="category in categories"
               :key="category.id"
@@ -93,26 +93,79 @@
       />
     </div>
 
+    <!-- 附件列表 -->
+    <div
+      v-if="attachments.length > 0"
+      class="bg-white px-4 py-3 border-t border-gray-100 flex-shrink-0"
+      style="padding-right: 100px"
+    >
+      <div class="flex items-center mb-2">
+        <i class="fas fa-paperclip text-gray-400 mr-2"></i>
+        <span class="text-sm font-medium text-gray-700"
+          >附件 ({{ attachments.length }})</span
+        >
+      </div>
+      <div class="space-y-2 max-h-40 overflow-y-auto pr-2 relative z-10">
+        <AttachmentCard
+          v-for="attachment in attachments"
+          :key="attachment.id"
+          :attachment="attachment"
+          @delete="handleDeleteAttachment"
+          @preview="handlePreviewAttachment"
+        />
+      </div>
+    </div>
+
     <!-- Floating Action Menu -->
-    <div class="fixed bottom-20 right-6 flex flex-col space-y-3 z-20">
+    <div
+      class="fixed right-6 bottom-24 flex flex-col-reverse items-center space-y-reverse space-y-3 z-20"
+    >
+      <!-- 切换按钮（眼睛图标） - 在下面 -->
       <button
-        @click="insertImageFromFloat"
-        class="w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-colors"
+        @click="showFloatingButtons = !showFloatingButtons"
+        class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all hover:scale-110"
+        :title="showFloatingButtons ? '隐藏工具栏' : '显示工具栏'"
       >
-        <i class="fas fa-camera text-lg"></i>
+        <i
+          :class="showFloatingButtons ? 'fas fa-eye' : 'fas fa-eye-slash'"
+          class="text-lg transition-all"
+        ></i>
       </button>
-      <button
-        @click="insertAudio"
-        class="w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition-colors"
+
+      <!-- 功能按钮组 - 在上面，向上展开 -->
+      <transition-group
+        name="slide-up"
+        tag="div"
+        class="flex flex-col-reverse items-center space-y-reverse space-y-3"
       >
-        <i class="fas fa-microphone text-lg"></i>
-      </button>
-      <button
-        @click="insertAttachment"
-        class="w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 transition-colors"
-      >
-        <i class="fas fa-paperclip text-lg"></i>
-      </button>
+        <button
+          v-show="showFloatingButtons"
+          key="attachment"
+          @click="insertAttachment"
+          class="w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 transition-all hover:scale-110"
+          title="上传附件"
+        >
+          <i class="fas fa-paperclip text-lg"></i>
+        </button>
+        <button
+          v-show="showFloatingButtons"
+          key="audio"
+          @click="insertAudio"
+          class="w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition-all hover:scale-110"
+          title="录音"
+        >
+          <i class="fas fa-microphone text-lg"></i>
+        </button>
+        <button
+          v-show="showFloatingButtons"
+          key="camera"
+          @click="insertImageFromFloat"
+          class="w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-110"
+          title="上传图片"
+        >
+          <i class="fas fa-image text-lg"></i>
+        </button>
+      </transition-group>
     </div>
 
     <!-- 确认离开对话框 -->
@@ -123,6 +176,13 @@
       type="warning"
       @confirm="handleConfirmLeave"
       @cancel="handleCancelLeave"
+    />
+
+    <!-- 附件预览对话框 -->
+    <AttachmentPreview
+      :visible="showPreview"
+      :attachment="previewAttachment"
+      @update:visible="showPreview = $event"
     />
   </div>
 </template>
@@ -135,9 +195,21 @@ import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getCategories } from "@/api/category";
 import type { Category } from "@/api/category";
 import { createNote, getNoteById, updateNote } from "@/api/note";
-import { uploadImage, uploadAttachment } from "@/api/file";
+import { uploadAttachment, deleteFile, getNoteAttachments } from "@/api/file";
 import { toast } from "@/utils/toast";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
+import AttachmentCard from "@/components/note/AttachmentCard.vue";
+import AttachmentPreview from "@/components/note/AttachmentPreview.vue";
+
+interface Attachment {
+  id: number;
+  original_name: string;
+  file_path: string;
+  file_size: number;
+  file_type: string;
+  mime_type: string;
+  url: string;
+}
 
 const router = useRouter();
 const route = useRoute();
@@ -157,6 +229,10 @@ const noteForm = ref({
 });
 
 const categories = ref<Category[]>([]);
+const attachments = ref<Attachment[]>([]);
+const showPreview = ref(false);
+const previewAttachment = ref<Attachment | null>(null);
+const showFloatingButtons = ref(true); // 控制浮动按钮显示/隐藏
 
 // Quill 工具栏配置
 const toolbarOptions = [
@@ -211,6 +287,9 @@ const loadNote = async () => {
         categoryId: note.category_id,
         tags: note.tags?.map((t) => t.name) || [],
       };
+
+      // 加载附件
+      await loadAttachments();
     } else {
       toast.error(response.data.message || "加载笔记失败");
       router.back();
@@ -219,6 +298,19 @@ const loadNote = async () => {
     console.error("加载笔记失败:", error);
     toast.error(error.response?.data?.message || "加载笔记失败");
     router.back();
+  }
+};
+
+const loadAttachments = async () => {
+  try {
+    const noteId = parseInt(route.params.id as string);
+    const response = await getNoteAttachments(noteId);
+
+    if (response.data.success) {
+      attachments.value = response.data.data.files;
+    }
+  } catch (error: any) {
+    console.error("加载附件失败:", error);
   }
 };
 
@@ -348,28 +440,10 @@ const insertAttachment = async () => {
 
         if (response.data.success) {
           const fileData = response.data.data;
-          const fileUrl = fileData.url;
-          const fileName = fileData.original_name;
-          const fileSize = (fileData.file_size / 1024).toFixed(2); // KB
-          const fileType = fileData.file_type;
 
-          // 根据文件类型插入不同的内容
-          const quill = quillEditor.value.getQuill();
-          const range = quill.getSelection(true);
+          // 添加到附件列表
+          attachments.value.push(fileData);
 
-          if (fileType === "image") {
-            // 图片直接插入
-            quill.insertEmbed(range.index, "image", fileUrl);
-          } else if (fileType === "video") {
-            // 视频插入
-            quill.insertEmbed(range.index, "video", fileUrl);
-          } else {
-            // 其他文件插入为链接
-            const linkText = `📎 ${fileName} (${fileSize} KB)`;
-            quill.insertText(range.index, linkText, "link", fileUrl);
-          }
-
-          quill.setSelection(range.index + 1);
           toast.success("附件上传成功");
         } else {
           toast.error(response.data.message || "附件上传失败");
@@ -380,6 +454,29 @@ const insertAttachment = async () => {
       }
     }
   };
+};
+
+// 删除附件
+const handleDeleteAttachment = async (fileId: number) => {
+  try {
+    const response = await deleteFile(fileId);
+    if (response.data.success) {
+      // 从列表中移除
+      attachments.value = attachments.value.filter((a) => a.id !== fileId);
+      toast.success("附件删除成功");
+    } else {
+      toast.error(response.data.message || "删除失败");
+    }
+  } catch (error: any) {
+    console.error("删除附件失败:", error);
+    toast.error(error.response?.data?.message || "删除失败，请重试");
+  }
+};
+
+// 预览附件
+const handlePreviewAttachment = (attachment: Attachment) => {
+  previewAttachment.value = attachment;
+  showPreview.value = true;
 };
 
 const saveNote = async () => {
@@ -536,5 +633,25 @@ const handleCancelLeave = () => {
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: monospace;
+}
+
+/* 浮动按钮动画 - 向下展开 */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.8);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.8);
+}
+
+.slide-down-move {
+  transition: transform 0.3s ease;
 }
 </style>

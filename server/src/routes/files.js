@@ -33,7 +33,19 @@ router.post('/upload-multiple', upload.array('images', 10), FileController.uploa
  * 上传单个附件（支持所有文件类型）
  * POST /api/files/upload-attachment
  */
-router.post('/upload-attachment', attachmentUpload.single('file'), FileController.uploadAttachment);
+router.post('/upload-attachment', async (ctx, next) => {
+  try {
+    await attachmentUpload.single('file')(ctx, next);
+  } catch (err) {
+    console.error('❌ Multer 中间件错误:', err.message);
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      success: false,
+      message: err.message || '文件上传失败'
+    };
+  }
+}, FileController.uploadAttachment);
 
 /**
  * 批量上传附件
