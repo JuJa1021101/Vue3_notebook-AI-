@@ -49,4 +49,11 @@ router.put('/profile', authenticate, AuthController.updateProfile);
  */
 router.put('/password', authenticate, AuthController.changePassword);
 
+/**
+ * 上传头像
+ * POST /api/auth/avatar
+ */
+const { upload } = require('../config/upload');
+router.post('/avatar', authenticate, upload.single('avatar'), AuthController.uploadAvatar);
+
 module.exports = router;

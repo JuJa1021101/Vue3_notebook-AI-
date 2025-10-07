@@ -197,6 +197,36 @@ class AuthController {
       return error(ctx, '密码修改失败', 500);
     }
   }
+
+  /**
+   * 上传头像
+   */
+  static async uploadAvatar(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const file = ctx.req.file;
+
+      if (!file) {
+        return error(ctx, '请选择要上传的图片', 400);
+      }
+
+      logger.info('Upload avatar attempt', { userId, filename: file.originalname });
+
+      const result = await AuthService.uploadAvatar(userId, file);
+
+      logger.info('Avatar uploaded successfully', { userId, url: result.url });
+
+      success(ctx, result, '头像上传成功');
+    } catch (err) {
+      logger.error('Upload avatar failed', { error: err.message, userId: ctx.state.userId });
+
+      if (err.message.includes('用户不存在')) {
+        return unauthorized(ctx, '用户不存在');
+      }
+
+      return error(ctx, '头像上传失败', 500);
+    }
+  }
 }
 
 module.exports = AuthController;

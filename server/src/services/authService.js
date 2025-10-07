@@ -190,6 +190,32 @@ class AuthService {
     await user.update({ password_hash: newPassword });
     return { message: '密码修改成功' };
   }
+
+  /**
+   * 上传头像
+   */
+  static async uploadAvatar(userId, file) {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    const FileService = require('./fileService');
+    const { getStorageMode } = require('../config/oss');
+
+    // 上传文件
+    const fileRecord = await FileService.uploadFile(userId, file, {
+      description: '用户头像'
+    });
+
+    // 更新用户头像
+    await user.update({ avatar: fileRecord.url });
+
+    return {
+      url: fileRecord.url,
+      message: '头像上传成功'
+    };
+  }
 }
 
 module.exports = AuthService;
