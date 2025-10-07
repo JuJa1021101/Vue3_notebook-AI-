@@ -118,7 +118,7 @@
 
     <!-- Floating Action Menu -->
     <div
-      class="fixed right-6 bottom-24 flex flex-col-reverse items-center space-y-reverse space-y-3 z-20"
+      class="fixed right-6 bottom-24 flex flex-col-reverse items-center z-20"
     >
       <!-- 切换按钮（眼睛图标） - 在下面 -->
       <button
@@ -133,39 +133,38 @@
       </button>
 
       <!-- 功能按钮组 - 在上面，向上展开 -->
-      <transition-group
-        name="slide-up"
-        tag="div"
-        class="flex flex-col-reverse items-center space-y-reverse space-y-3"
-      >
-        <button
-          v-show="showFloatingButtons"
-          key="attachment"
-          @click="insertAttachment"
-          class="w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 transition-all hover:scale-110"
-          title="上传附件"
-        >
-          <i class="fas fa-paperclip text-lg"></i>
-        </button>
-        <button
-          v-show="showFloatingButtons"
-          key="audio"
-          @click="insertAudio"
-          class="w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition-all hover:scale-110"
-          title="录音"
-        >
-          <i class="fas fa-microphone text-lg"></i>
-        </button>
-        <button
-          v-show="showFloatingButtons"
-          key="camera"
-          @click="insertImageFromFloat"
-          class="w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-110"
-          title="上传图片"
-        >
-          <i class="fas fa-image text-lg"></i>
-        </button>
-      </transition-group>
+      <div class="flex flex-col-reverse items-center">
+        <transition name="slide-up-3">
+          <button
+            v-if="showFloatingButtons"
+            @click="insertAttachment"
+            class="w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 transition-all hover:scale-110 mb-3"
+            title="上传附件"
+          >
+            <i class="fas fa-paperclip text-lg"></i>
+          </button>
+        </transition>
+        <transition name="slide-up-2">
+          <button
+            v-if="showFloatingButtons"
+            @click="insertAudio"
+            class="w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition-all hover:scale-110 mb-3"
+            title="录音"
+          >
+            <i class="fas fa-microphone text-lg"></i>
+          </button>
+        </transition>
+        <transition name="slide-up-1">
+          <button
+            v-if="showFloatingButtons"
+            @click="insertImageFromFloat"
+            class="w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-110 mb-3"
+            title="上传图片"
+          >
+            <i class="fas fa-image text-lg"></i>
+          </button>
+        </transition>
+      </div>
     </div>
 
     <!-- 确认离开对话框 -->
@@ -675,23 +674,61 @@ const handleCancelLeave = () => {
   font-family: monospace;
 }
 
-/* 浮动按钮动画 - 向下展开 */
-.slide-down-enter-active,
-.slide-down-leave-active {
+/* 浮动按钮动画 - 从眼睛按钮位置向上展开 */
+/* 第一个按钮（图片） */
+.slide-up-1-enter-active {
   transition: all 0.3s ease;
 }
 
-.slide-down-enter-from {
-  opacity: 0;
-  transform: translateY(-20px) scale(0.8);
+.slide-up-1-leave-active {
+  transition: all 0.2s ease;
 }
 
-.slide-down-leave-to {
+.slide-up-1-enter-from {
   opacity: 0;
-  transform: translateY(-20px) scale(0.8);
+  transform: translateY(68px) scale(0.3);
 }
 
-.slide-down-move {
-  transition: transform 0.3s ease;
+.slide-up-1-leave-to {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+/* 第二个按钮（录音） */
+.slide-up-2-enter-active {
+  transition: all 0.3s ease 0.05s;
+}
+
+.slide-up-2-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-up-2-enter-from {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+.slide-up-2-leave-to {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+/* 第三个按钮（附件） */
+.slide-up-3-enter-active {
+  transition: all 0.3s ease 0.1s;
+}
+
+.slide-up-3-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-up-3-enter-from {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+.slide-up-3-leave-to {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
 }
 </style>
