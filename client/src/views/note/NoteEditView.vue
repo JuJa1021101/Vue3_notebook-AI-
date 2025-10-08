@@ -134,6 +134,23 @@
 
       <!-- 功能按钮组 - 在上面，向上展开 -->
       <div class="flex flex-col-reverse items-center">
+        <!-- AI 助手按钮 -->
+        <transition name="slide-up-4">
+          <button
+            v-if="showFloatingButtons"
+            @click="toggleAIPanel"
+            class="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 mb-3"
+            :class="
+              aiStore.showPanel
+                ? 'bg-gradient-to-br from-purple-600 to-indigo-600'
+                : 'bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+            "
+            title="AI 助手"
+          >
+            <i class="fas fa-magic text-lg"></i>
+          </button>
+        </transition>
+        <!-- 附件按钮 -->
         <transition name="slide-up-3">
           <button
             v-if="showFloatingButtons"
@@ -144,6 +161,7 @@
             <i class="fas fa-paperclip text-lg"></i>
           </button>
         </transition>
+        <!-- 录音按钮 -->
         <transition name="slide-up-2">
           <button
             v-if="showFloatingButtons"
@@ -154,6 +172,7 @@
             <i class="fas fa-microphone text-lg"></i>
           </button>
         </transition>
+        <!-- 图片按钮 -->
         <transition name="slide-up-1">
           <button
             v-if="showFloatingButtons"
@@ -166,6 +185,15 @@
         </transition>
       </div>
     </div>
+
+    <!-- AI 助手面板 -->
+    <AIPanel @action="handleAIAction" />
+    <AIPreview
+      v-if="aiStore.showPreview"
+      @apply="applyAIResult"
+      @close="aiStore.closePreview()"
+      @regenerate="regenerateAI"
+    />
 
     <!-- 确认离开对话框 -->
     <ConfirmDialog
@@ -204,6 +232,8 @@ import { toast } from "@/utils/toast";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import AttachmentCard from "@/components/note/AttachmentCard.vue";
 import AttachmentPreview from "@/components/note/AttachmentPreview.vue";
+import { AIPanel, AIPreview } from "@/components/ai";
+import { useAIStore } from "@/stores/ai";
 
 interface Attachment {
   id: number;
@@ -238,6 +268,9 @@ const showPreview = ref(false);
 const previewAttachment = ref<Attachment | null>(null);
 const showFloatingButtons = ref(true); // 控制浮动按钮显示/隐藏
 
+// AI Store
+const aiStore = useAIStore();
+
 // 节流函数 - 第一次立即执行，后续点击在延迟时间内被忽略
 const throttle = (fn: Function, delay: number) => {
   let lastTime = 0;
@@ -257,6 +290,11 @@ const toggleFloatingButtons = () => {
 
 // 节流版本的切换函数（1秒延迟）
 const debouncedToggleFloatingButtons = throttle(toggleFloatingButtons, 1000);
+
+// 切换 AI 面板
+const toggleAIPanel = () => {
+  aiStore.togglePanel();
+};
 
 // Quill 工具栏配置
 const toolbarOptions = [
@@ -309,7 +347,7 @@ const loadNote = async () => {
         title: note.title,
         content: note.content,
         categoryId: note.category_id,
-        tags: note.tags?.map((t) => t.name) || [],
+        tags: note.tags?.map((t: any) => t.name) || [],
       };
 
       // 加载附件
@@ -584,6 +622,166 @@ const handleConfirmLeave = () => {
 const handleCancelLeave = () => {
   showConfirmDialog.value = false;
 };
+
+// ==================== AI 助手功能 ====================
+
+/**
+ * 处理 AI 操作
+ */
+const handleAIAction = async (actionId: string) => {
+  try {
+    const quill = quillEditor.value?.getQuill();
+    if (!quill) {
+      toast.error("编辑器未就绪");
+      return;
+    }
+
+    // 获取选中的文本或全部内容
+    const selection = quill.getSelection();
+    let content = "";
+
+    if (selection && selection.length > 0) {
+      // 有选中文本
+      content = quill.getText(selection.index, selection.length);
+    } else {
+      // 没有选中，使用全部内容
+      content = quill.getText();
+    }
+
+    if (!content.trim()) {
+      toast.error("请先输入或选中内容");
+      return;
+    }
+
+    // 调用 AI 服务
+    const options = {
+      noteId: isEdit.value ? parseInt(route.params.id as string) : undefined,
+    };
+
+    // 根据 actionId 调用对应的 AI 方法
+    switch (actionId) {
+      case "continue":
+        await aiStore.continue(content, options);
+        break;
+      case "format":
+        await aiStore.format(content, options);
+        break;
+      case "beautify":
+        await aiStore.beautify(content, options);
+        break;
+      case "polish":
+        await aiStore.polish(content, options);
+        break;
+      case "summarize":
+        await aiStore.summarize(content, options);
+        break;
+      case "expand":
+        await aiStore.expand(content, options);
+        break;
+      default:
+        toast.error("未知的 AI 操作");
+    }
+  } catch (error: any) {
+    console.error("AI 处理失败:", error);
+    toast.error(error.message || "AI 处理失败，请重试");
+  }
+};
+
+/**
+ * 应用 AI 结果
+ */
+const applyAIResult = (result: string) => {
+  try {
+    const quill = quillEditor.value?.getQuill();
+    if (!quill) return;
+
+    const currentAction = aiStore.currentAction;
+    const selection = quill.getSelection();
+
+    // 对于"智能续写"和"内容扩写"，应该追加原内容
+    const shouldAppendOriginal =
+      currentAction === "continue" || currentAction === "expand";
+
+    if (selection && selection.length > 0) {
+      // 有选中文本的情况
+      if (shouldAppendOriginal) {
+        // 续写/扩写：保留原文 + 追加新内容
+        const originalText = quill.getText(selection.index, selection.length);
+        const combinedText = originalText + "\n\n" + result;
+        quill.deleteText(selection.index, selection.length);
+        quill.insertText(selection.index, combinedText);
+        quill.setSelection(selection.index + combinedText.length);
+      } else {
+        // 润色/格式化/美化：直接替换选中文本
+        quill.deleteText(selection.index, selection.length);
+        quill.insertText(selection.index, result);
+        quill.setSelection(selection.index + result.length);
+      }
+    } else {
+      // 没有选中文本的情况（处理全文）
+      if (shouldAppendOriginal) {
+        // 续写/扩写：在原内容后追加
+        const length = quill.getLength();
+        quill.insertText(length - 1, "\n\n" + result);
+        quill.setSelection(length + result.length);
+      } else {
+        // 润色/格式化/美化：替换全部内容
+        const length = quill.getLength();
+        quill.deleteText(0, length);
+        quill.insertText(0, result);
+        quill.setSelection(result.length);
+      }
+    }
+
+    toast.success("已应用 AI 结果");
+
+    // 关闭预览和 AI 面板
+    aiStore.closePreview();
+    aiStore.closePanel();
+  } catch (error) {
+    console.error("应用结果失败:", error);
+    toast.error("应用结果失败");
+  }
+};
+
+/**
+ * 重新生成
+ */
+const regenerateAI = async () => {
+  if (!aiStore.currentAction || !aiStore.originalContent) return;
+
+  try {
+    const action = aiStore.currentAction;
+    const content = aiStore.originalContent;
+    const options = {
+      noteId: isEdit.value ? parseInt(route.params.id as string) : undefined,
+    };
+
+    // 根据当前操作重新生成
+    switch (action) {
+      case "continue":
+        await aiStore.continue(content, options);
+        break;
+      case "format":
+        await aiStore.format(content, options);
+        break;
+      case "beautify":
+        await aiStore.beautify(content, options);
+        break;
+      case "polish":
+        await aiStore.polish(content, options);
+        break;
+      case "summarize":
+        await aiStore.summarize(content, options);
+        break;
+      case "expand":
+        await aiStore.expand(content, options);
+        break;
+    }
+  } catch (error: any) {
+    toast.error(error.message || "重新生成失败");
+  }
+};
 </script>
 
 <style>
@@ -728,6 +926,25 @@ const handleCancelLeave = () => {
 }
 
 .slide-up-3-leave-to {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+/* 第四个按钮（AI 助手） */
+.slide-up-4-enter-active {
+  transition: all 0.3s ease 0.15s;
+}
+
+.slide-up-4-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-up-4-enter-from {
+  opacity: 0;
+  transform: translateY(68px) scale(0.3);
+}
+
+.slide-up-4-leave-to {
   opacity: 0;
   transform: translateY(68px) scale(0.3);
 }

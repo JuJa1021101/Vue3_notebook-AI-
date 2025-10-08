@@ -21,6 +21,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
     "@koa/cors": "^5.0.0",
     "ali-oss": "^6.23.0",
     "axios": "^1.12.2",

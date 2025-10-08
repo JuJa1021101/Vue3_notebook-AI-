@@ -4,7 +4,7 @@ import type { ApiResponse } from '@/types/api'
 // 创建axios实例
 const request: AxiosInstance = axios.create({
   baseURL: '/api',
-  timeout: 10000,
+  timeout: 120000, // 2分钟超时，适配AI请求
   headers: {
     'Content-Type': 'application/json'
   }

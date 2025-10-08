@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth');
 const categoryRoutes = require('./routes/categories');
 const noteRoutes = require('./routes/notes');
 const fileRoutes = require('./routes/files');
+const aiRoutes = require('./routes/ai/aiRoutes');
 
 const app = new Koa();
 const PORT = process.env.PORT || 3000;
@@ -88,6 +89,17 @@ app.use(async (ctx, next) => {
           deleteMultiple: 'POST /api/files/delete-multiple',
           stats: 'GET /api/files/stats',
           convert: 'POST /api/files/:id/convert'
+        },
+        ai: {
+          continue: 'POST /api/ai/continue',
+          format: 'POST /api/ai/format',
+          beautify: 'POST /api/ai/beautify',
+          polish: 'POST /api/ai/polish',
+          summarize: 'POST /api/ai/summarize',
+          expand: 'POST /api/ai/expand',
+          settings: 'GET /api/ai/settings',
+          updateSettings: 'PUT /api/ai/settings',
+          stats: 'GET /api/ai/stats'
         }
       }
     };
@@ -111,6 +123,10 @@ app.use(noteRoutes.allowedMethods());
 app.use(fileRoutes.routes());
 app.use(fileRoutes.allowedMethods());
 
+// 注册 AI 路由
+app.use(aiRoutes.routes());
+app.use(aiRoutes.allowedMethods());
+
 // 404处理
 app.use(async (ctx) => {
   ctx.status = 404;
@@ -131,6 +147,25 @@ app.listen(PORT, async () => {
 
   // 测试数据库连接
   await testConnection();
+
+  // 测试 AI 服务连接
+  try {
+    const QwenService = require('./services/ai/qwenService');
+    const qwenService = new QwenService();
+    const isConnected = await qwenService.testConnection();
+    if (isConnected) {
+      logger.info('✅ AI Service (Qwen) connected successfully');
+      console.log('✅ AI Service (Qwen) connected successfully');
+    } else {
+      logger.warn('⚠️ AI Service connection failed');
+      console.log('⚠️ AI Service connection failed');
+    }
+  } catch (error) {
+    logger.error('❌ AI Service initialization error:', error.message);
+    console.log('❌ AI Service initialization error:', error.message);
+  }
 });
+
+module.exports = app;
 
 module.exports = app;
