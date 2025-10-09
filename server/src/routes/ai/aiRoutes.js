@@ -24,9 +24,20 @@ const verifyToken = async (ctx, next) => {
 
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    ctx.state.user = decoded;
+
+    // 将 userId 映射为 id，保持与其他控制器一致
+    ctx.state.user = {
+      id: decoded.userId,
+      userId: decoded.userId,
+      username: decoded.username,
+      email: decoded.email
+    };
+
+    console.log('🔐 认证成功，用户ID:', ctx.state.user.id);
+
     await next();
   } catch (error) {
+    console.error('❌ 认证失败:', error.message);
     ctx.status = 401;
     ctx.body = {
       success: false,

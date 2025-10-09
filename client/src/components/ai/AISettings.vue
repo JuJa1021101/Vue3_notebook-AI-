@@ -18,9 +18,9 @@
           <div class="form-group">
             <label>默认续写长度</label>
             <select v-model="formData.default_length">
-              <option value="short">短（50-100字）</option>
-              <option value="medium">中（100-300字）</option>
-              <option value="long">长（300-500字）</option>
+              <option value="short">短（50-200字）</option>
+              <option value="medium">中（200-500字）</option>
+              <option value="long">长（500-800字）</option>
             </select>
           </div>
 
@@ -104,12 +104,21 @@ const save = async () => {
       stream_enabled: Boolean(formData.value.stream_enabled), // 强制转换为布尔值
     };
 
-    console.log("💾 保存 AI 设置:", settingsToSave);
+    console.log("💾 准备保存 AI 设置:", settingsToSave);
+    console.log("💾 各字段类型:", {
+      default_length: typeof settingsToSave.default_length,
+      default_style: typeof settingsToSave.default_style,
+      default_language: typeof settingsToSave.default_language,
+      stream_enabled: typeof settingsToSave.stream_enabled,
+    });
+
     const success = await aiStore.updateSettings(settingsToSave);
     console.log("📝 保存结果:", success);
 
     if (success) {
       toast.success("设置已保存");
+      // 等待一下确保数据同步
+      await new Promise((resolve) => setTimeout(resolve, 500));
       close();
     } else {
       toast.error("保存失败，请重试");
@@ -138,9 +147,7 @@ onMounted(async () => {
         aiStore.settings.default_style || "professional";
       formData.value.default_language =
         aiStore.settings.default_language || "zh";
-      formData.value.stream_enabled =
-        aiStore.settings.stream_enabled === true ||
-        aiStore.settings.stream_enabled === 1;
+      formData.value.stream_enabled = Boolean(aiStore.settings.stream_enabled);
 
       console.log("📝 表单初始化:", formData.value);
       console.log(

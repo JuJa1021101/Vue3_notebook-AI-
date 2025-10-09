@@ -208,18 +208,32 @@ class AIController {
   async getSettings(ctx) {
     try {
       const userId = ctx.state.user.id;
+      console.log('📋 获取 AI 设置，用户ID:', userId);
+
+      if (!userId) {
+        console.error('❌ 用户ID为空');
+        ctx.status = 401;
+        ctx.body = {
+          success: false,
+          message: '用户未认证'
+        };
+        return;
+      }
+
       const settings = await aiService.getUserSettings(userId);
+      console.log('✅ 成功获取设置:', settings);
 
       ctx.body = {
         success: true,
         data: settings
       };
     } catch (error) {
-      console.error('AIController.getSettings error:', error);
+      console.error('❌ AIController.getSettings error:', error);
+      console.error('❌ 错误堆栈:', error.stack);
       ctx.status = 500;
       ctx.body = {
         success: false,
-        message: '服务器错误'
+        message: '服务器错误: ' + error.message
       };
     }
   }
@@ -230,6 +244,18 @@ class AIController {
   async updateSettings(ctx) {
     try {
       const userId = ctx.state.user.id;
+      console.log('💾 更新 AI 设置，用户ID:', userId);
+
+      if (!userId) {
+        console.error('❌ 用户ID为空');
+        ctx.status = 401;
+        ctx.body = {
+          success: false,
+          message: '用户未认证'
+        };
+        return;
+      }
+
       const settings = ctx.request.body;
 
       // 验证设置
@@ -269,6 +295,29 @@ class AIController {
       console.log('📥 数据类型:', typeof settings);
       console.log('📥 所有键:', Object.keys(settings));
       console.log('👤 用户 ID:', userId);
+
+      // 首先检查用户是否有设置记录
+      const existingSettings = await sequelize.query(
+        'SELECT id FROM ai_settings WHERE user_id = ?',
+        {
+          replacements: [userId],
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+
+      console.log('🔍 现有设置记录:', existingSettings);
+
+      // 如果没有记录，先创建默认记录
+      if (!existingSettings || existingSettings.length === 0) {
+        console.log('⚠️ 用户没有设置记录，创建默认记录');
+        await sequelize.query(
+          `INSERT INTO ai_settings (user_id, provider, model, default_length, default_style, default_language, stream_enabled)
+           VALUES (?, 'siliconflow', 'Qwen/Qwen2.5-7B-Instruct', 'medium', 'professional', 'zh', TRUE)`,
+          {
+            replacements: [userId]
+          }
+        );
+      }
 
       // 更新设置 - 简化逻辑，直接更新所有提供的字段
       const updateFields = [];
@@ -316,7 +365,7 @@ class AIController {
           values
         });
 
-        const [results] = await sequelize.query(
+        const result = await sequelize.query(
           `UPDATE ai_settings SET ${updateFields.join(', ')} WHERE user_id = ?`,
           {
             replacements: values,
@@ -324,8 +373,18 @@ class AIController {
           }
         );
 
-        console.log('✅ SQL 更新结果:', results);
-        console.log('✅ 影响的行数:', results || 0);
+        console.log('✅ SQL 更新结果:', result);
+
+        // 验证更新是否成功 - 查询更新后的数据
+        const updatedSettings = await sequelize.query(
+          'SELECT * FROM ai_settings WHERE user_id = ?',
+          {
+            replacements: [userId],
+            type: sequelize.QueryTypes.SELECT
+          }
+        );
+
+        console.log('✅ 更新后的设置:', updatedSettings[0]);
       } else {
         console.log('⚠️ 没有字段需要更新');
       }
@@ -335,11 +394,17 @@ class AIController {
         message: '设置已更新'
       };
     } catch (error) {
-      console.error('AIController.updateSettings error:', error);
+      console.error('❌ AIController.updateSettings error:', error);
+      console.error('❌ 错误堆栈:', error.stack);
+      console.error('❌ 错误详情:', {
+        name: error.name,
+        message: error.message,
+        code: error.code
+      });
       ctx.status = 500;
       ctx.body = {
         success: false,
-        message: '服务器错误'
+        message: '服务器错误: ' + error.message
       };
     }
   }
