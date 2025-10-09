@@ -110,24 +110,33 @@ export const useAIStore = defineStore('ai', {
       this.originalContent = content;
 
       try {
-        const apiMethod = aiAPI[action];
-        const response = await apiMethod({ content, options });
+        // 检查是否启用流式输出
+        const streamEnabled = this.settings?.stream_enabled || false;
 
-        if (response.success && response.data) {
-          let result = response.data.result;
-
-          // 对于续写和扩写操作，如果 AI 返回的内容包含原文，则去除原文部分
-          if (action === 'continue' || action === 'expand') {
-            result = this.removeOriginalContent(result, content);
-          }
-
-          this.result = result;
-          this.processedContent = result;
-          this.showPreview = true;
-          return result;
+        if (streamEnabled) {
+          // 使用流式输出
+          return await this.processAIStream(action, content, options);
         } else {
-          this.error = response.message || 'AI 处理失败';
-          throw new Error(this.error);
+          // 使用普通输出
+          const apiMethod = aiAPI[action];
+          const response = await apiMethod({ content, options });
+
+          if (response.success && response.data) {
+            let result = response.data.result;
+
+            // 对于续写和扩写操作，如果 AI 返回的内容包含原文，则去除原文部分
+            if (action === 'continue' || action === 'expand') {
+              result = this.removeOriginalContent(result, content);
+            }
+
+            this.result = result;
+            this.processedContent = result;
+            this.showPreview = true;
+            return result;
+          } else {
+            this.error = response.message || 'AI 处理失败';
+            throw new Error(this.error);
+          }
         }
       } catch (error: any) {
         this.error = error.message || '网络错误';
@@ -135,6 +144,43 @@ export const useAIStore = defineStore('ai', {
       } finally {
         this.isProcessing = false;
       }
+    },
+
+    /**
+     * 处理流式 AI 请求
+     */
+    async processAIStream(action: AIAction, content: string, options?: AIOptions) {
+      return new Promise((resolve, reject) => {
+        const apiMethod = aiAPI[action];
+        let fullResult = '';
+
+        // 调用流式 API
+        apiMethod({
+          content,
+          options: { ...options, streamEnabled: true }
+        }, (chunk: string) => {
+          // 接收数据块
+          fullResult += chunk;
+          this.result = fullResult;
+          this.processedContent = fullResult;
+          this.showPreview = true;
+        }).then(() => {
+          // 流式输出完成
+          let result = fullResult;
+
+          // 对于续写和扩写操作，去除原文部分
+          if (action === 'continue' || action === 'expand') {
+            result = this.removeOriginalContent(result, content);
+          }
+
+          this.result = result;
+          this.processedContent = result;
+          resolve(result);
+        }).catch((error: any) => {
+          this.error = error.message || '流式输出失败';
+          reject(error);
+        });
+      });
     },
 
     /**

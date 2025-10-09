@@ -14,7 +14,7 @@ const PromptTemplates = {
 【重要规则】
 1. 绝对不要重复用户已写的内容
 2. 直接从用户内容的结尾处继续写
-3. 续写长度：50-100字
+3. 续写长度：50-200字
 4. 写作风格：{style}
 5. 保持语气和主题一致
 
@@ -28,7 +28,7 @@ const PromptTemplates = {
 【重要规则】
 1. 绝对不要重复用户已写的内容
 2. 直接从用户内容的结尾处继续写
-3. 续写长度：100-300字
+3. 续写长度：200-500字
 4. 写作风格：{style}
 5. 保持语气和主题一致
 6. 可以适当展开论述
@@ -43,7 +43,7 @@ const PromptTemplates = {
 【重要规则】
 1. 绝对不要重复用户已写的内容
 2. 直接从用户内容的结尾处继续写
-3. 续写长度：300-500字
+3. 续写长度：500-800字
 4. 写作风格：{style}
 5. 保持语气和主题一致
 6. 充分展开论述，可以添加例子和细节
@@ -57,7 +57,7 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 50-100 words
+- Length: 50-200 words
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
@@ -70,7 +70,7 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 100-300 words
+- Length: 200-500 words
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
@@ -84,7 +84,7 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 300-500 words
+- Length: 500-800 words
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth

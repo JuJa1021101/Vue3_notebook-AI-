@@ -35,9 +35,13 @@ class AIController {
         return;
       }
 
-      // 调用服务
-      const result = await aiService.continue(userId, content, options);
-      ctx.body = result;
+      // 检查是否使用流式输出
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'continue', content, options, ctx);
+      } else {
+        const result = await aiService.continue(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.continue error:', error);
       ctx.status = 500;
@@ -65,8 +69,12 @@ class AIController {
         return;
       }
 
-      const result = await aiService.format(userId, content, options);
-      ctx.body = result;
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'format', content, options, ctx);
+      } else {
+        const result = await aiService.format(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.format error:', error);
       ctx.status = 500;
@@ -94,8 +102,12 @@ class AIController {
         return;
       }
 
-      const result = await aiService.beautify(userId, content, options);
-      ctx.body = result;
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'beautify', content, options, ctx);
+      } else {
+        const result = await aiService.beautify(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.beautify error:', error);
       ctx.status = 500;
@@ -123,8 +135,12 @@ class AIController {
         return;
       }
 
-      const result = await aiService.polish(userId, content, options);
-      ctx.body = result;
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'polish', content, options, ctx);
+      } else {
+        const result = await aiService.polish(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.polish error:', error);
       ctx.status = 500;
@@ -190,8 +206,12 @@ class AIController {
         return;
       }
 
-      const result = await aiService.expand(userId, content, options);
-      ctx.body = result;
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'expand', content, options, ctx);
+      } else {
+        const result = await aiService.expand(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.expand error:', error);
       ctx.status = 500;

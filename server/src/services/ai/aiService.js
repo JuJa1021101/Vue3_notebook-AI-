@@ -78,13 +78,14 @@ class AIService {
         length: options.length || userSettings.default_length || 'medium',
         style: options.style || userSettings.default_style || 'professional',
         maxTokens: options.maxTokens || 4096,
-        temperature: options.temperature || 0.7
+        temperature: options.temperature || 0.7,
+        streamEnabled: options.streamEnabled !== undefined ? options.streamEnabled : userSettings.stream_enabled
       };
 
       // 4. 构建 Prompt
       const prompt = buildPrompt(action, content, finalOptions);
 
-      // 5. 调用 AI API
+      // 5. 调用 AI API（根据设置选择流式或非流式）
       const result = await this.qwenService.complete(prompt, finalOptions);
 
       const endTime = Date.now();
@@ -161,6 +162,156 @@ class AIService {
         success: false,
         message: '服务器错误，请稍后再试'
       };
+    }
+  }
+
+  /**
+   * 处理流式 AI 请求
+   */
+  async processAIStream(userId, action, content, options = {}, ctx) {
+    const startTime = Date.now();
+
+    try {
+      // 1. 检查限流
+      const canProceed = await this.checkRateLimit(userId);
+      if (!canProceed) {
+        ctx.status = 429;
+        ctx.body = {
+          success: false,
+          message: '请求过于频繁，请稍后再试'
+        };
+        return;
+      }
+
+      // 2. 获取用户设置
+      const userSettings = await this.getUserSettings(userId);
+
+      // 3. 合并选项
+      const finalOptions = {
+        language: options.language || userSettings.default_language || 'zh',
+        length: options.length || userSettings.default_length || 'medium',
+        style: options.style || userSettings.default_style || 'professional',
+        maxTokens: options.maxTokens || 4096,
+        temperature: options.temperature || 0.7
+      };
+
+      // 4. 构建 Prompt
+      const prompt = buildPrompt(action, content, finalOptions);
+
+      // 5. 设置 SSE 响应头
+      ctx.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no'
+      });
+
+      ctx.status = 200;
+
+      let fullContent = '';
+      let tokensUsed = 0;
+
+      // 6. 调用流式 API
+      const result = await this.qwenService.streamComplete(prompt, finalOptions, (chunk) => {
+        // 实时发送数据块
+        fullContent += chunk;
+        ctx.res.write(`data: ${JSON.stringify({ chunk, done: false })}\n\n`);
+      });
+
+      const endTime = Date.now();
+      const processingTime = endTime - startTime;
+
+      if (result.success) {
+        tokensUsed = result.tokensUsed || 0;
+
+        // 发送完成信号
+        ctx.res.write(`data: ${JSON.stringify({
+          done: true,
+          tokensUsed,
+          processingTime
+        })}\n\n`);
+
+        // 记录使用日志
+        await this.logUsage({
+          userId,
+          noteId: options.noteId || null,
+          action,
+          inputLength: content.length,
+          outputLength: fullContent.length,
+          tokensUsed,
+          cost: this.calculateCost(tokensUsed),
+          provider: 'siliconflow',
+          model: this.qwenService.model,
+          success: true,
+          errorMessage: null,
+          processingTime
+        });
+
+        // 保存到历史记录
+        if (options.saveHistory !== false) {
+          await this.saveHistory({
+            userId,
+            noteId: options.noteId || null,
+            action,
+            originalContent: content,
+            resultContent: fullContent,
+            options: finalOptions,
+            tokensUsed
+          });
+        }
+      } else {
+        // 发送错误信号
+        ctx.res.write(`data: ${JSON.stringify({
+          done: true,
+          error: result.error
+        })}\n\n`);
+
+        // 记录失败日志
+        await this.logUsage({
+          userId,
+          noteId: options.noteId || null,
+          action,
+          inputLength: content.length,
+          outputLength: 0,
+          tokensUsed: 0,
+          cost: 0,
+          provider: 'siliconflow',
+          model: this.qwenService.model,
+          success: false,
+          errorMessage: result.error,
+          processingTime
+        });
+      }
+
+      ctx.res.end();
+    } catch (error) {
+      console.error('AIService.processAIStream error:', error);
+
+      const endTime = Date.now();
+      const processingTime = endTime - startTime;
+
+      // 发送错误信号
+      ctx.res.write(`data: ${JSON.stringify({
+        done: true,
+        error: error.message
+      })}\n\n`);
+      ctx.res.end();
+
+      // 记录失败日志
+      await this.logUsage({
+        userId,
+        noteId: options.noteId || null,
+        action,
+        inputLength: content.length,
+        outputLength: 0,
+        tokensUsed: 0,
+        cost: 0,
+        provider: 'siliconflow',
+        model: this.qwenService.model,
+        success: false,
+        errorMessage: error.message,
+        processingTime
+      });
     }
   }
 
