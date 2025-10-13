@@ -1,5 +1,4 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import type { ApiResponse } from '@/types/api'
 
 // 创建axios实例
 const request: AxiosInstance = axios.create({

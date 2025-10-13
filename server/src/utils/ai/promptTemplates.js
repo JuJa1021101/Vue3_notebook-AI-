@@ -12,13 +12,13 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 绝对不要重复用户已写的内容
-2. 直接从用户内容的结尾处继续写
-3. 续写长度：50-200字
-4. 写作风格：{style}
-5. 保持语气和主题一致
+1. 保持原文内容不变，在结尾处继续写
+2. 续写长度：50-200字
+3. 写作风格：{style}
+4. 保持语气和主题一致
+5. 输出完整的原文+续写内容
 
-请直接输出续写的新内容，不要有任何前缀、解释或重复。`,
+请输出完整的文本内容（原文+续写）。`,
 
       medium: `你是一个专业的写作助手。用户已经写了一段内容，现在需要你接着往下写。
 
@@ -26,14 +26,14 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 绝对不要重复用户已写的内容
-2. 直接从用户内容的结尾处继续写
-3. 续写长度：200-500字
-4. 写作风格：{style}
-5. 保持语气和主题一致
-6. 可以适当展开论述
+1. 保持原文内容不变，在结尾处继续写
+2. 续写长度：200-500字
+3. 写作风格：{style}
+4. 保持语气和主题一致
+5. 可以适当展开论述
+6. 输出完整的原文+续写内容
 
-请直接输出续写的新内容，不要有任何前缀、解释或重复。`,
+请输出完整的文本内容（原文+续写）。`,
 
       long: `你是一个专业的写作助手。用户已经写了一段内容，现在需要你接着往下写。
 
@@ -41,14 +41,14 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 绝对不要重复用户已写的内容
-2. 直接从用户内容的结尾处继续写
-3. 续写长度：500-800字
-4. 写作风格：{style}
-5. 保持语气和主题一致
-6. 充分展开论述，可以添加例子和细节
+1. 保持原文内容不变，在结尾处继续写
+2. 续写长度：500-800字
+3. 写作风格：{style}
+4. 保持语气和主题一致
+5. 充分展开论述，可以添加例子和细节
+6. 输出完整的原文+续写内容
 
-请直接输出续写的新内容，不要有任何前缀、解释或重复。`
+请输出完整的文本内容（原文+续写）。`
     },
     en: {
       short: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
@@ -57,12 +57,14 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 50-200 words
+- Keep the original content unchanged and continue at the end
+- Length: 50-200 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
+- Output the complete text (original + continuation)
 
-Please output the continuation directly without any explanation.`,
+Please output the complete text (original + continuation).`,
 
       medium: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
 
@@ -70,13 +72,15 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 200-500 words
+- Keep the original content unchanged and continue at the end
+- Length: 200-500 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
 - Expand the discussion appropriately
+- Output the complete text (original + continuation)
 
-Please output the continuation directly without any explanation.`,
+Please output the complete text (original + continuation).`,
 
       long: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
 
@@ -84,13 +88,15 @@ Existing content:
 {content}
 
 Requirements:
-- Length: 500-800 words
+- Keep the original content unchanged and continue at the end
+- Length: 500-800 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
 - Fully expand the discussion with examples and details
+- Output the complete text (original + continuation)
 
-Please output the continuation directly without any explanation.`
+Please output the complete text (original + continuation).`
     }
   },
 
@@ -293,9 +299,9 @@ Please output the summary.`
 - 目标长度：{length}
 - 写作风格：{style}
 - 保持原文核心观点
-- 【重要】只输出扩写的新增内容，不要重复原文
+- 输出完整的扩写后内容（包含原文）
 
-请直接输出扩写的新增内容，不要重复原文。`,
+请输出完整的扩写后内容（包含原文）。`,
 
     en: `Please expand the following brief content to make it more detailed and complete:
 
@@ -309,8 +315,9 @@ Requirements:
 - Target length: {length}
 - Writing style: {style}
 - Keep the core viewpoint
+- Output the complete expanded content (including original)
 
-Please output the expanded content.`
+Please output the complete expanded content (including original).`
   }
 };
 

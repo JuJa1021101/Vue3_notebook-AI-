@@ -13,9 +13,36 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-/* 手机容器样式 */
+html, body, #app {
+  height: 100%;
+  width: 100%;
+}
+
+/* 应用容器样式 - 全屏布局 */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 主内容区域 */
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 移除原有的手机容器样式（保留为注释，方便后续参考） */
+/*
 .phone-container {
   width: 393px;
   height: 852px;
@@ -35,7 +62,6 @@ body {
   position: relative;
 }
 
-/* iOS状态栏 */
 .status-bar {
   height: 47px;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
@@ -46,6 +72,7 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
+*/
 
 /* 底部标签栏 */
 .tab-bar {
@@ -57,10 +84,8 @@ body {
   justify-content: space-around;
   align-items: center;
   padding-bottom: 20px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -208,6 +233,13 @@ body {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .app-container {
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  /* 保留原有的手机容器样式，但仅在需要时启用 */
+  /*
   .phone-container {
     width: 100vw;
     height: 100vh;
@@ -219,4 +251,5 @@ body {
   .phone-screen {
     border-radius: 0;
   }
+  */
 }

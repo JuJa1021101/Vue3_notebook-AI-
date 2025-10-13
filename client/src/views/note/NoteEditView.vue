@@ -698,39 +698,17 @@ const applyAIResult = (result: string) => {
     const currentAction = aiStore.currentAction;
     const selection = quill.getSelection();
 
-    // 对于"智能续写"和"内容扩写"，应该追加原内容
-    const shouldAppendOriginal =
-      currentAction === "continue" || currentAction === "expand";
-
     if (selection && selection.length > 0) {
-      // 有选中文本的情况
-      if (shouldAppendOriginal) {
-        // 续写/扩写：保留原文 + 追加新内容
-        const originalText = quill.getText(selection.index, selection.length);
-        const combinedText = originalText + "\n\n" + result;
-        quill.deleteText(selection.index, selection.length);
-        quill.insertText(selection.index, combinedText);
-        quill.setSelection(selection.index + combinedText.length);
-      } else {
-        // 润色/格式化/美化：直接替换选中文本
-        quill.deleteText(selection.index, selection.length);
-        quill.insertText(selection.index, result);
-        quill.setSelection(selection.index + result.length);
-      }
+      // 有选中文本的情况 - 直接替换选中文本
+      quill.deleteText(selection.index, selection.length);
+      quill.insertText(selection.index, result);
+      quill.setSelection(selection.index + result.length);
     } else {
-      // 没有选中文本的情况（处理全文）
-      if (shouldAppendOriginal) {
-        // 续写/扩写：在原内容后追加
-        const length = quill.getLength();
-        quill.insertText(length - 1, "\n\n" + result);
-        quill.setSelection(length + result.length);
-      } else {
-        // 润色/格式化/美化：替换全部内容
-        const length = quill.getLength();
-        quill.deleteText(0, length);
-        quill.insertText(0, result);
-        quill.setSelection(result.length);
-      }
+      // 没有选中文本的情况（处理全文）- 替换全部内容
+      const length = quill.getLength();
+      quill.deleteText(0, length);
+      quill.insertText(0, result);
+      quill.setSelection(result.length);
     }
 
     toast.success("已应用 AI 结果");

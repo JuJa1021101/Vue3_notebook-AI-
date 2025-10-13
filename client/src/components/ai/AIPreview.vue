@@ -23,7 +23,7 @@
 
           <!-- 分隔符 -->
           <div class="divider">
-            <i class="fas fa-arrow-right"></i>
+            <i class="fas fa-arrow-down"></i>
           </div>
 
           <!-- AI 处理后 -->
@@ -31,8 +31,13 @@
             <div class="section-header">
               <i class="fas fa-magic"></i>
               <span>AI 优化后</span>
+              <div v-if="isProcessing" class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+              </div>
             </div>
-            <div class="content-box highlight">
+            <div class="content-box highlight" ref="processedContentRef" :class="{ streaming: isProcessing }">
               {{ processedContent }}
             </div>
           </div>
@@ -54,15 +59,12 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" @click="close">
           <i class="fas fa-times"></i>
-          取消
         </button>
         <button class="btn btn-regenerate" @click="regenerate">
           <i class="fas fa-redo"></i>
-          重新生成
         </button>
         <button class="btn btn-primary" @click="apply">
           <i class="fas fa-check"></i>
-          应用
         </button>
       </div>
     </div>
@@ -70,13 +72,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
 import { useAIStore } from "@/stores/ai";
 
 const aiStore = useAIStore();
 
 const originalContent = computed(() => aiStore.originalContent);
 const processedContent = computed(() => aiStore.processedContent);
+const isProcessing = computed(() => aiStore.isProcessing);
+const processedContentRef = ref<HTMLElement | null>(null);
+
+// 监听 processedContent 的变化，自动滚动到底部（始终启用）
+watch(processedContent, async () => {
+  await nextTick();
+  if (processedContentRef.value) {
+    // 使用平滑滚动效果，类似豆包的流式输出跟踪
+    const scrollHeight = processedContentRef.value.scrollHeight;
+    const clientHeight = processedContentRef.value.clientHeight;
+    const scrollTop = processedContentRef.value.scrollTop;
+    
+    // 只有在底部附近时才自动滚动（避免用户手动滚动时被打扰）
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+    
+    if (isNearBottom) {
+      processedContentRef.value.scrollTo({
+        top: scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }
+});
 
 const stats = computed(() => {
   if (!aiStore.result) return null;
@@ -167,12 +192,16 @@ const regenerate = () => {
       flex: 1;
 
       .preview-container {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 20px;
         margin-bottom: 20px;
 
         .preview-section {
+          width: 100%;
+          max-width: 600px;
+          
           .section-header {
             display: flex;
             align-items: center;
@@ -184,6 +213,44 @@ const regenerate = () => {
 
             i {
               color: #667eea;
+            }
+
+            .typing-indicator {
+              display: flex;
+              gap: 4px;
+              margin-left: auto;
+              align-items: center;
+
+              .typing-dot {
+                width: 8px;
+                height: 8px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                animation: typing 1.2s infinite ease-in-out;
+
+                &:nth-child(1) {
+                  animation-delay: -0.4s;
+                }
+
+                &:nth-child(2) {
+                  animation-delay: -0.2s;
+                }
+
+                &:nth-child(3) {
+                  animation-delay: 0s;
+                }
+              }
+            }
+          }
+
+          @keyframes typing {
+            0%, 80%, 100% {
+              transform: scale(0.7);
+              opacity: 0.4;
+            }
+            40% {
+              transform: scale(1.1);
+              opacity: 1;
             }
           }
 
@@ -207,6 +274,20 @@ const regenerate = () => {
             &.highlight {
               background: #f0f2ff;
               border-color: #667eea;
+              transition: scroll-top 0.3s ease;
+              
+              &.streaming {
+                animation: contentPulse 2s ease-in-out infinite;
+              }
+            }
+            
+            @keyframes contentPulse {
+              0%, 100% {
+                box-shadow: 0 0 0 rgba(102, 126, 234, 0.1);
+              }
+              50% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+              }
             }
 
             /* 自定义滚动条样式 */
@@ -236,6 +317,7 @@ const regenerate = () => {
           justify-content: center;
           color: #667eea;
           font-size: 24px;
+          margin: 10px 0;
         }
       }
 
@@ -263,22 +345,21 @@ const regenerate = () => {
     .modal-footer {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: 12px;
+      justify-content: space-between;
       padding: 16px 20px;
       border-top: 1px solid #e9ecef;
 
       .btn {
-        padding: 10px 20px;
+        width: 48px;
+        height: 48px;
         border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
+        border-radius: 50%;
+        font-size: 18px;
         cursor: pointer;
         transition: all 0.3s;
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
 
         &.btn-secondary {
           background: #f8f9fa;
@@ -326,11 +407,11 @@ const regenerate = () => {
         padding: 16px;
 
         .preview-container {
-          grid-template-columns: 1fr;
-          grid-template-rows: auto auto auto;
           gap: 16px;
 
           .preview-section {
+            max-width: 100%;
+            
             .content-box {
               max-height: 300px;
               font-size: 13px;
@@ -339,7 +420,6 @@ const regenerate = () => {
           }
 
           .divider {
-            transform: rotate(90deg);
             margin: 8px 0;
           }
         }
@@ -350,10 +430,9 @@ const regenerate = () => {
         padding: 12px 16px;
 
         .btn {
-          flex: 1;
-          min-width: 100px;
-          padding: 8px 16px;
-          font-size: 13px;
+          width: 44px;
+          height: 44px;
+          font-size: 16px;
         }
       }
     }
