@@ -8,7 +8,7 @@
         </button>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body" ref="modalBodyRef">
         <div class="preview-container">
           <!-- 原文 -->
           <div class="preview-section">
@@ -81,25 +81,26 @@ const originalContent = computed(() => aiStore.originalContent);
 const processedContent = computed(() => aiStore.processedContent);
 const isProcessing = computed(() => aiStore.isProcessing);
 const processedContentRef = ref<HTMLElement | null>(null);
+const modalBodyRef = ref<HTMLElement | null>(null);
 
-// 监听 processedContent 的变化，自动滚动到底部（始终启用）
+// 监听 processedContent 的变化，自动滚动到底部
 watch(processedContent, async () => {
   await nextTick();
+  
+  // 1. 滚动内容区域到底部
   if (processedContentRef.value) {
-    // 使用平滑滚动效果，类似豆包的流式输出跟踪
-    const scrollHeight = processedContentRef.value.scrollHeight;
-    const clientHeight = processedContentRef.value.clientHeight;
-    const scrollTop = processedContentRef.value.scrollTop;
-    
-    // 只有在底部附近时才自动滚动（避免用户手动滚动时被打扰）
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
-    
-    if (isNearBottom) {
-      processedContentRef.value.scrollTo({
-        top: scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+    processedContentRef.value.scrollTo({
+      top: processedContentRef.value.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+  
+  // 2. 滚动整个模态框body到底部（最右边的滚动条）
+  if (modalBodyRef.value) {
+    modalBodyRef.value.scrollTo({
+      top: modalBodyRef.value.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 });
 
@@ -123,7 +124,16 @@ const close = () => {
 };
 
 const apply = () => {
-  const result = aiStore.processedContent;
+  // 检查当前操作是否为扩写
+  const isExpandAction = aiStore.currentAction === 'expand';
+  
+  // 如果是扩写操作，则直接使用AI处理后的内容替换原文
+  // 如果是续写操作，保持原文与AI处理后内容的拼接逻辑
+  // 其他操作保持原有的逻辑不变
+  const result = isExpandAction 
+    ? aiStore.processedContent 
+    : (aiStore.currentAction === 'continue' ? aiStore.originalContent + aiStore.processedContent : aiStore.processedContent);
+  
   emit("apply", result);
   aiStore.closePreview();
 };
