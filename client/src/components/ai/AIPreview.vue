@@ -37,8 +37,19 @@
                 <span class="typing-dot"></span>
               </div>
             </div>
-            <div class="content-box highlight" ref="processedContentRef" :class="{ streaming: isProcessing }">
-              {{ processedContent }}
+            <div 
+              class="content-box highlight prose" 
+              ref="processedContentRef" 
+              :class="{ streaming: isProcessing }"
+            >
+              <!-- 对于格式优化和排版美化操作，使用解析后的Markdown -->
+              <template v-if="shouldRenderMarkdown">
+                <div v-html="parsedMarkdown"></div>
+              </template>
+              <!-- 其他操作保持原样显示 -->
+              <template v-else>
+                {{ processedContent }}
+              </template>
             </div>
           </div>
         </div>
@@ -74,14 +85,29 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue";
 import { useAIStore } from "@/stores/ai";
+import { marked } from 'marked';
 
 const aiStore = useAIStore();
 
 const originalContent = computed(() => aiStore.originalContent);
 const processedContent = computed(() => aiStore.processedContent);
 const isProcessing = computed(() => aiStore.isProcessing);
+const currentAction = computed(() => aiStore.currentAction);
 const processedContentRef = ref<HTMLElement | null>(null);
 const modalBodyRef = ref<HTMLElement | null>(null);
+
+// 判断是否需要渲染Markdown（只针对格式优化和排版美化操作）
+const shouldRenderMarkdown = computed(() => {
+  return currentAction.value === 'format' || currentAction.value === 'beautify';
+});
+
+// 解析Markdown内容
+const parsedMarkdown = computed(() => {
+  if (!shouldRenderMarkdown.value || !processedContent.value) {
+    return '';
+  }
+  return marked(processedContent.value);
+});
 
 // 监听 processedContent 的变化，自动滚动到底部
 watch(processedContent, async () => {
@@ -402,6 +428,97 @@ const regenerate = () => {
       }
     }
   }
+}
+
+/* Markdown 样式 */
+.prose {
+  color: #374151;
+  line-height: 1.75;
+}
+
+.prose h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.prose p {
+  margin-bottom: 1rem;
+}
+
+.prose ul,
+.prose ol {
+  margin-bottom: 1rem;
+  padding-left: 2em;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-bottom: 0.5rem;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+  padding: 1em;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid #667eea;
+  padding-left: 1em;
+  margin-left: 0;
+  font-style: italic;
+  color: #6b7280;
 }
 
 @media (max-width: 768px) {

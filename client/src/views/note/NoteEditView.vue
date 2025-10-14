@@ -698,17 +698,41 @@ const applyAIResult = (result: string) => {
     const currentAction = aiStore.currentAction;
     const selection = quill.getSelection();
 
-    if (selection && selection.length > 0) {
-      // 有选中文本的情况 - 直接替换选中文本
-      quill.deleteText(selection.index, selection.length);
-      quill.insertText(selection.index, result);
-      quill.setSelection(selection.index + result.length);
+    // 对于格式优化和排版美化操作，需要解析Markdown格式
+    const shouldRenderMarkdown = currentAction === 'format' || currentAction === 'beautify';
+
+    if (shouldRenderMarkdown) {
+      // 使用marked库解析Markdown为HTML
+      import('marked').then(({ marked }) => {
+        const htmlContent = marked(result);
+        
+        if (selection && selection.length > 0) {
+          // 有选中文本的情况 - 直接替换选中文本
+          quill.deleteText(selection.index, selection.length);
+          quill.clipboard.dangerouslyPasteHTML(selection.index, htmlContent);
+          quill.setSelection(selection.index + 1);
+        } else {
+          // 没有选中文本的情况（处理全文）- 替换全部内容
+          const length = quill.getLength();
+          quill.deleteText(0, length);
+          quill.clipboard.dangerouslyPasteHTML(0, htmlContent);
+          quill.setSelection(0);
+        }
+      });
     } else {
-      // 没有选中文本的情况（处理全文）- 替换全部内容
-      const length = quill.getLength();
-      quill.deleteText(0, length);
-      quill.insertText(0, result);
-      quill.setSelection(result.length);
+      // 其他操作保持原有的文本插入逻辑
+      if (selection && selection.length > 0) {
+        // 有选中文本的情况 - 直接替换选中文本
+        quill.deleteText(selection.index, selection.length);
+        quill.insertText(selection.index, result);
+        quill.setSelection(selection.index + result.length);
+      } else {
+        // 没有选中文本的情况（处理全文）- 替换全部内容
+        const length = quill.getLength();
+        quill.deleteText(0, length);
+        quill.insertText(0, result);
+        quill.setSelection(result.length);
+      }
     }
 
     toast.success("已应用 AI 结果");
