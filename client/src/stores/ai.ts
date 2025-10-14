@@ -129,6 +129,25 @@ export const useAIStore = defineStore('ai', {
               result = this.removeOriginalContent(result, content);
             }
 
+            // 对于格式优化操作，去除说明内容
+            if (action === 'format') {
+              // 去除开头的说明内容
+              const startMatch = result.match(/[：:]\s*\n/);
+              if (startMatch) {
+                result = result.substring(startMatch.index + 1).trim();
+              }
+              
+              // 去除结尾的优化说明部分
+              const endKeywords = ['优化说明', '如图所示'];
+              for (const keyword of endKeywords) {
+                const keywordIndex = result.lastIndexOf(keyword);
+                if (keywordIndex !== -1) {
+                  result = result.substring(0, keywordIndex).trim();
+                  break;
+                }
+              }
+            }
+
             this.result = result;
             this.processedContent = result;
             this.showPreview = true;
@@ -171,6 +190,25 @@ export const useAIStore = defineStore('ai', {
           // 对于续写和扩写操作，去除原文部分
           if (action === 'continue' || action === 'expand') {
             result = this.removeOriginalContent(result, content);
+          }
+
+          // 对于格式优化操作，去除说明内容
+          if (action === 'format') {
+            // 去除开头的说明内容
+            const startMatch = result.match(/[：:]\s*\n/);
+            if (startMatch) {
+              result = result.substring(startMatch.index + 1).trim();
+            }
+            
+            // 去除结尾的优化说明部分
+            const endKeywords = ['优化说明', '如图所示'];
+            for (const keyword of endKeywords) {
+              const keywordIndex = result.lastIndexOf(keyword);
+              if (keywordIndex !== -1) {
+                result = result.substring(0, keywordIndex).trim();
+                break;
+              }
+            }
           }
 
           this.result = result;
