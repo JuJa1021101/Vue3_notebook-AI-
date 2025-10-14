@@ -174,12 +174,14 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import NoteCard from "../../components/note/NoteCard.vue";
 import { useAuthStore } from "../../stores/auth";
+import { useAIStore } from "../../stores/ai";
 import { getNotes, deleteNote } from "@/api/note";
 import type { Note } from "../../types/note";
 import { toast } from "@/utils/toast";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const aiStore = useAIStore();
 const loading = ref(false);
 const totalNotes = ref(0);
 const showDeleteConfirm = ref(false);
@@ -268,6 +270,16 @@ onMounted(async () => {
   } else if (!authStore.user && authStore.token) {
     // 尝试从 localStorage 恢复
     authStore.restoreUser();
+  }
+
+  // 确保AI设置已加载（如果尚未加载）
+  if (!aiStore.settings) {
+    try {
+      await aiStore.fetchSettings();
+      console.log('HomeView: AI设置加载成功:', aiStore.settings);
+    } catch (error) {
+      console.error('HomeView: 加载AI设置失败:', error);
+    }
   }
 
   // 加载最近笔记

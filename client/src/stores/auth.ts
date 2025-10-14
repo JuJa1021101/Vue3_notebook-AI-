@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as authApi from '@/api/auth'
+import { useAIStore } from './ai'
 import type { User } from '@/types/user'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -25,6 +26,16 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('user', JSON.stringify(response.data.data.user))
 
         console.log('登录成功，用户信息:', user.value)
+
+        // 登录成功后加载AI设置
+        try {
+          const aiStore = useAIStore()
+          await aiStore.fetchSettings()
+          console.log('AI设置加载成功:', aiStore.settings)
+        } catch (error) {
+          console.error('加载AI设置失败:', error)
+          // 不影响登录流程，继续执行
+        }
       } else {
         throw new Error(response.data.message || '登录失败')
       }
@@ -64,6 +75,16 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('user', JSON.stringify(response.data.data.user))
 
         console.log('注册成功，用户信息:', user.value)
+
+        // 注册成功后加载AI设置
+        try {
+          const aiStore = useAIStore()
+          await aiStore.fetchSettings()
+          console.log('AI设置加载成功:', aiStore.settings)
+        } catch (error) {
+          console.error('加载AI设置失败:', error)
+          // 不影响注册流程，继续执行
+        }
       } else {
         throw new Error(response.data.message || '注册失败')
       }
