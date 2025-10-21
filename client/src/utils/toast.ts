@@ -6,6 +6,8 @@ export const toast = {
     showSuccessToast({
       message,
       duration: 2000,
+      position: 'top',
+      className: 'custom-toast-small',
     });
   },
 
@@ -13,6 +15,8 @@ export const toast = {
     showFailToast({
       message,
       duration: 2000,
+      position: 'top',
+      className: 'custom-toast-small',
     });
   },
 
@@ -20,6 +24,8 @@ export const toast = {
     showToast({
       message,
       duration: 2000,
+      position: 'top',
+      className: 'custom-toast-small',
     });
   },
 
@@ -28,6 +34,8 @@ export const toast = {
       message,
       forbidClick: true,
       duration: 0,
+      position: 'top',
+      className: 'custom-toast-small',
     });
   },
 };

@@ -30,7 +30,7 @@ const togglePanel = () => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffab91 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -77,7 +77,7 @@ const togglePanel = () => {
   }
 
   &.active {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #ffab91 0%, #ffe0b2 100%);
 
     i {
       transform: rotate(180deg);

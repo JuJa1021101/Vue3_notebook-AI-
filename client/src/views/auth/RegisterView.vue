@@ -43,17 +43,17 @@
 
           <form @submit.prevent="nextStep" class="space-y-5">
             <!-- Username -->
-            <div class="input-group">
+            <div class="input-group relative">
               <input
                 type="text"
                 id="username"
                 v-model="registerForm.username"
                 placeholder=" "
-                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               />
               <label
                 for="username"
-                class="absolute left-4 top-3 text-gray-500 pointer-events-none"
+                class="absolute left-4 top-4 text-gray-500 text-sm pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
               >
                 用户名
               </label>
@@ -64,34 +64,34 @@
             </div>
 
             <!-- Email -->
-            <div class="input-group">
+            <div class="input-group relative">
               <input
                 type="email"
                 id="email"
                 v-model="registerForm.email"
                 placeholder=" "
-                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               />
               <label
                 for="email"
-                class="absolute left-4 top-3 text-gray-500 pointer-events-none"
+                class="absolute left-4 top-4 text-gray-500 text-sm pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
               >
                 邮箱地址
               </label>
             </div>
 
             <!-- Phone -->
-            <div class="input-group">
+            <div class="input-group relative">
               <input
                 type="tel"
                 id="phone"
                 v-model="registerForm.phone"
                 placeholder=" "
-                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               />
               <label
                 for="phone"
-                class="absolute left-4 top-3 text-gray-500 pointer-events-none"
+                class="absolute left-4 top-4 text-gray-500 text-sm pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
               >
                 手机号码（可选）
               </label>
@@ -117,25 +117,25 @@
 
           <form @submit.prevent="nextStep" class="space-y-5">
             <!-- Password -->
-            <div class="input-group">
+            <div class="input-group relative">
               <input
                 :type="showPassword ? 'text' : 'password'"
                 id="password"
                 v-model="registerForm.password"
                 @input="checkPasswordStrength"
                 placeholder=" "
-                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 pr-12 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               />
               <label
                 for="password"
-                class="absolute left-4 top-3 text-gray-500 pointer-events-none"
+                class="absolute left-4 top-4 text-gray-500 text-sm pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
               >
                 密码
               </label>
               <button
                 type="button"
                 @click="showPassword = !showPassword"
-                class="absolute right-4 top-3 text-gray-400"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <i
                   :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
@@ -189,25 +189,25 @@
             </div>
 
             <!-- Confirm Password -->
-            <div class="input-group">
+            <div class="input-group relative">
               <input
                 :type="showConfirmPassword ? 'text' : 'password'"
                 id="confirmPassword"
                 v-model="registerForm.confirmPassword"
                 @input="checkPasswordMatch"
                 placeholder=" "
-                class="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                class="peer w-full border border-gray-300 rounded-xl px-4 pt-6 pb-2 pr-12 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
               />
               <label
                 for="confirmPassword"
-                class="absolute left-4 top-3 text-gray-500 pointer-events-none"
+                class="absolute left-4 top-4 text-gray-500 text-sm pointer-events-none transition-all peer-focus:top-2 peer-focus:text-xs peer-focus:text-blue-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
               >
                 确认密码
               </label>
               <button
                 type="button"
                 @click="showConfirmPassword = !showConfirmPassword"
-                class="absolute right-4 top-3 text-gray-400"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <i
                   :class="

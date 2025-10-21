@@ -18,7 +18,9 @@ body {
   overflow-x: hidden;
 }
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   width: 100%;
 }
@@ -231,13 +233,42 @@ html, body, #app {
   }
 }
 
+/* 自定义 Toast 样式 - 全局覆盖 */
+.van-toast.custom-toast-small {
+  min-width: 120px !important;
+  max-width: 200px !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  top: 20px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.van-toast.custom-toast-small .van-toast__icon {
+  font-size: 18px !important;
+  margin-bottom: 1px !important;
+}
+
+.van-toast.custom-toast-small .van-toast__text {
+  margin-top: 1px !important;
+  font-size: 10px !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* 针对顶部位置的特殊处理 */
+.van-toast--top.custom-toast-small {
+  top: 20px !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .app-container {
     width: 100vw;
     height: 100vh;
   }
-  
+
   /* 保留原有的手机容器样式，但仅在需要时启用 */
   /*
   .phone-container {
