@@ -177,8 +177,12 @@ class AIController {
         return;
       }
 
-      const result = await aiService.summarize(userId, content, options);
-      ctx.body = result;
+      if (options.streamEnabled) {
+        await aiService.processAIStream(userId, 'summarize', content, options, ctx);
+      } else {
+        const result = await aiService.summarize(userId, content, options);
+        ctx.body = result;
+      }
     } catch (error) {
       console.error('AIController.summarize error:', error);
       ctx.status = 500;

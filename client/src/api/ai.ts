@@ -178,7 +178,11 @@ export const aiAPI = {
   /**
    * 生成摘要
    */
-  summarize: async (data: AIRequest): Promise<AIResponse> => {
+  summarize: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+    if (data.options?.streamEnabled && onChunk) {
+      await createStreamRequest('/api/ai/summarize', data, onChunk);
+      return { success: true };
+    }
     const response = await request.post('/ai/summarize', data);
     return response.data;
   },
