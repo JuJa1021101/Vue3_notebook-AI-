@@ -80,7 +80,7 @@
     </div>
 
     <!-- Quill Editor -->
-    <div class="bg-white flex-1 overflow-hidden">
+    <div class="bg-white flex-1 overflow-hidden" style="margin-bottom: 0">
       <QuillEditor
         ref="quillEditor"
         :content="noteForm.content"
@@ -97,7 +97,7 @@
     <div
       v-if="attachments.length > 0"
       class="bg-white px-4 py-3 border-t border-gray-100 flex-shrink-0"
-      style="padding-right: 100px"
+      style="margin-right: 100px"
     >
       <div class="flex items-center mb-2">
         <i class="fas fa-paperclip text-gray-400 mr-2"></i>
@@ -699,13 +699,14 @@ const applyAIResult = (result: string) => {
     const selection = quill.getSelection();
 
     // 对于格式优化和排版美化操作，需要解析Markdown格式
-    const shouldRenderMarkdown = currentAction === 'format' || currentAction === 'beautify';
+    const shouldRenderMarkdown =
+      currentAction === "format" || currentAction === "beautify";
 
     if (shouldRenderMarkdown) {
       // 使用marked库解析Markdown为HTML
-      import('marked').then(({ marked }) => {
+      import("marked").then(({ marked }) => {
         const htmlContent = marked(result);
-        
+
         if (selection && selection.length > 0) {
           // 有选中文本的情况 - 直接替换选中文本
           quill.deleteText(selection.index, selection.length);
@@ -790,12 +791,14 @@ const regenerateAI = async () => {
 /* Quill 编辑器样式 */
 .ql-container {
   font-size: 16px;
-  height: calc(100vh - 280px);
+  height: 100%;
+  min-height: 300px;
 }
 
 .ql-editor {
   min-height: 300px;
   padding: 20px;
+  padding-bottom: 40px;
 }
 
 .ql-editor.ql-blank::before {

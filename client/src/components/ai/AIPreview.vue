@@ -37,9 +37,9 @@
                 <span class="typing-dot"></span>
               </div>
             </div>
-            <div 
-              class="content-box highlight prose" 
-              ref="processedContentRef" 
+            <div
+              class="content-box highlight prose"
+              ref="processedContentRef"
               :class="{ streaming: isProcessing }"
             >
               <!-- 对于格式优化和排版美化操作，使用解析后的Markdown -->
@@ -85,7 +85,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue";
 import { useAIStore } from "@/stores/ai";
-import { marked } from 'marked';
+import { marked } from "marked";
 
 const aiStore = useAIStore();
 
@@ -98,13 +98,13 @@ const modalBodyRef = ref<HTMLElement | null>(null);
 
 // 判断是否需要渲染Markdown（只针对格式优化和排版美化操作）
 const shouldRenderMarkdown = computed(() => {
-  return currentAction.value === 'format' || currentAction.value === 'beautify';
+  return currentAction.value === "format" || currentAction.value === "beautify";
 });
 
 // 解析Markdown内容
 const parsedMarkdown = computed(() => {
   if (!shouldRenderMarkdown.value || !processedContent.value) {
-    return '';
+    return "";
   }
   return marked(processedContent.value);
 });
@@ -112,20 +112,20 @@ const parsedMarkdown = computed(() => {
 // 监听 processedContent 的变化，自动滚动到底部
 watch(processedContent, async () => {
   await nextTick();
-  
+
   // 1. 滚动内容区域到底部
   if (processedContentRef.value) {
     processedContentRef.value.scrollTo({
       top: processedContentRef.value.scrollHeight,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   }
-  
+
   // 2. 滚动整个模态框body到底部（最右边的滚动条）
   if (modalBodyRef.value) {
     modalBodyRef.value.scrollTo({
       top: modalBodyRef.value.scrollHeight,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   }
 });
@@ -151,15 +151,17 @@ const close = () => {
 
 const apply = () => {
   // 检查当前操作是否为扩写
-  const isExpandAction = aiStore.currentAction === 'expand';
-  
+  const isExpandAction = aiStore.currentAction === "expand";
+
   // 如果是扩写操作，则直接使用AI处理后的内容替换原文
   // 如果是续写操作，保持原文与AI处理后内容的拼接逻辑
   // 其他操作保持原有的逻辑不变
-  const result = isExpandAction 
-    ? aiStore.processedContent 
-    : (aiStore.currentAction === 'continue' ? aiStore.originalContent + aiStore.processedContent : aiStore.processedContent);
-  
+  const result = isExpandAction
+    ? aiStore.processedContent
+    : aiStore.currentAction === "continue"
+    ? aiStore.originalContent + aiStore.processedContent
+    : aiStore.processedContent;
+
   emit("apply", result);
   aiStore.closePreview();
 };
@@ -237,7 +239,7 @@ const regenerate = () => {
         .preview-section {
           width: 100%;
           max-width: 600px;
-          
+
           .section-header {
             display: flex;
             align-items: center;
@@ -280,7 +282,9 @@ const regenerate = () => {
           }
 
           @keyframes typing {
-            0%, 80%, 100% {
+            0%,
+            80%,
+            100% {
               transform: scale(0.7);
               opacity: 0.4;
             }
@@ -311,14 +315,15 @@ const regenerate = () => {
               background: #f0f2ff;
               border-color: #667eea;
               transition: scroll-top 0.3s ease;
-              
+
               &.streaming {
                 animation: contentPulse 2s ease-in-out infinite;
               }
             }
-            
+
             @keyframes contentPulse {
-              0%, 100% {
+              0%,
+              100% {
                 box-shadow: 0 0 0 rgba(102, 126, 234, 0.1);
               }
               50% {
@@ -417,12 +422,12 @@ const regenerate = () => {
         }
 
         &.btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
           color: white;
 
           &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
           }
         }
       }
@@ -538,7 +543,7 @@ const regenerate = () => {
 
           .preview-section {
             max-width: 100%;
-            
+
             .content-box {
               max-height: 300px;
               font-size: 13px;
