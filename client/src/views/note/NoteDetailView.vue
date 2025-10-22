@@ -257,33 +257,95 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 };
 </script>
 
-<style scoped>
+<style>
+/* 全局样式：用于 v-html 渲染的内容 */
 .prose {
   color: #374151;
   line-height: 1.75;
+  font-size: 16px;
+}
+
+/* 标题样式 */
+.prose h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #111827;
+  line-height: 1.2;
 }
 
 .prose h2 {
-  font-size: 1.25rem;
+  font-size: 1.5em;
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
+  color: #1f2937;
+  line-height: 1.3;
 }
 
+.prose h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.prose h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.prose h5 {
+  font-size: 1em;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #6b7280;
+}
+
+.prose h6 {
+  font-size: 0.9em;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #9ca3af;
+}
+
+/* 段落样式 */
 .prose p {
   margin-bottom: 1rem;
+  margin-top: 0;
 }
 
+/* 文本格式 */
 .prose strong {
   font-weight: 600;
+  color: #111827;
 }
-</style>
 
-<style>
-/* 全局样式：用于 v-html 渲染的列表内容 */
+.prose em {
+  font-style: italic;
+}
+
+.prose u {
+  text-decoration: underline;
+}
+
+.prose s {
+  text-decoration: line-through;
+}
+
+/* 列表样式 */
 .prose ul,
 .prose ol {
   margin-bottom: 1rem !important;
+  margin-top: 0.5rem !important;
   padding-left: 2em !important;
   list-style-position: outside !important;
 }
@@ -301,11 +363,168 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   display: list-item !important;
 }
 
+.prose li > p {
+  margin-bottom: 0.5rem;
+}
+
+/* 嵌套列表 */
+.prose ul ul,
+.prose ol ul {
+  list-style-type: circle !important;
+  margin-top: 0.5rem;
+}
+
+.prose ul ul ul,
+.prose ol ul ul,
+.prose ol ol ul {
+  list-style-type: square !important;
+}
+
+.prose ol ol {
+  list-style-type: lower-alpha !important;
+  margin-top: 0.5rem;
+}
+
+/* 引用样式 */
 .prose blockquote {
-  border-left: 4px solid #e5e7eb;
+  border-left: 4px solid #3b82f6;
   padding-left: 1rem;
   margin: 1.5rem 0;
   font-style: italic;
   color: #6b7280;
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0 4px 4px 0;
+}
+
+.prose blockquote p {
+  margin: 0;
+}
+
+/* 代码样式 */
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.875em;
+  color: #e83e8c;
+}
+
+.prose pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border-radius: 6px;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1rem 0;
+  line-height: 1.5;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+  font-size: 0.875em;
+}
+
+/* 链接样式 */
+.prose a {
+  color: #3b82f6;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.prose a:hover {
+  color: #2563eb;
+}
+
+/* 图片样式 */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+  display: block;
+}
+
+/* 水平分割线 */
+.prose hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* 表格样式 */
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.prose table td,
+.prose table th {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.prose table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.prose table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* Quill 特定的类名支持 */
+.prose .ql-align-center {
+  text-align: center;
+}
+
+.prose .ql-align-right {
+  text-align: right;
+}
+
+.prose .ql-align-justify {
+  text-align: justify;
+}
+
+.prose .ql-indent-1 {
+  padding-left: 3em;
+}
+
+.prose .ql-indent-2 {
+  padding-left: 6em;
+}
+
+.prose .ql-indent-3 {
+  padding-left: 9em;
+}
+
+/* 字体颜色和背景色 */
+.prose .ql-font-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.prose .ql-font-monospace {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.prose .ql-size-small {
+  font-size: 0.75em;
+}
+
+.prose .ql-size-large {
+  font-size: 1.5em;
+}
+
+.prose .ql-size-huge {
+  font-size: 2.5em;
 }
 </style>

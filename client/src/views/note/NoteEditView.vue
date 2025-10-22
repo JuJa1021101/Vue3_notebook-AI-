@@ -698,9 +698,15 @@ const applyAIResult = (result: string) => {
     const currentAction = aiStore.currentAction;
     const selection = quill.getSelection();
 
-    // 对于格式优化和排版美化操作，需要解析Markdown格式
+    // 检查结果是否包含 Markdown 语法
+    const hasMarkdownSyntax =
+      /^#{1,6}\s|^\*\*|^\*|^-\s|^\d+\.\s|^>\s|```/m.test(result);
+
+    // 对于所有可能包含 Markdown 的内容，都进行解析
     const shouldRenderMarkdown =
-      currentAction === "format" || currentAction === "beautify";
+      currentAction === "format" ||
+      currentAction === "beautify" ||
+      hasMarkdownSyntax;
 
     if (shouldRenderMarkdown) {
       // 使用marked库解析Markdown为HTML
@@ -719,9 +725,15 @@ const applyAIResult = (result: string) => {
           quill.clipboard.dangerouslyPasteHTML(0, htmlContent);
           quill.setSelection(0);
         }
+
+        toast.success("已应用 AI 结果");
+
+        // 关闭预览和 AI 面板
+        aiStore.closePreview();
+        aiStore.closePanel();
       });
     } else {
-      // 其他操作保持原有的文本插入逻辑
+      // 纯文本内容，直接插入
       if (selection && selection.length > 0) {
         // 有选中文本的情况 - 直接替换选中文本
         quill.deleteText(selection.index, selection.length);
@@ -734,13 +746,13 @@ const applyAIResult = (result: string) => {
         quill.insertText(0, result);
         quill.setSelection(result.length);
       }
+
+      toast.success("已应用 AI 结果");
+
+      // 关闭预览和 AI 面板
+      aiStore.closePreview();
+      aiStore.closePanel();
     }
-
-    toast.success("已应用 AI 结果");
-
-    // 关闭预览和 AI 面板
-    aiStore.closePreview();
-    aiStore.closePanel();
   } catch (error) {
     console.error("应用结果失败:", error);
     toast.error("应用结果失败");
