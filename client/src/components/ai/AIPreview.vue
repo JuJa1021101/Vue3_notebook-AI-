@@ -296,7 +296,7 @@ const regenerate = () => {
 
           .content-box {
             padding: 16px;
-            background: #f8f9fa;
+            background: #f8f9fa !important;
             border: 1px solid #e9ecef;
             border-radius: 8px;
             min-height: 200px;
@@ -305,14 +305,14 @@ const regenerate = () => {
             overflow-x: hidden;
             font-size: 14px;
             line-height: 1.6;
-            color: #333;
+            color: #333 !important;
             white-space: pre-wrap;
             word-wrap: break-word;
             word-break: break-word;
             overflow-wrap: break-word;
 
             &.highlight {
-              background: #f0f2ff;
+              background: #f0f2ff !important;
               border-color: #667eea;
               transition: scroll-top 0.3s ease;
 
@@ -435,95 +435,109 @@ const regenerate = () => {
   }
 }
 
-/* Markdown 样式 */
-.prose {
-  color: #374151;
+/* Markdown 样式 - 使用更高优先级 */
+.ai-preview-modal .prose {
+  color: #374151 !important;
   line-height: 1.75;
+  background: transparent !important;
 }
 
-.prose h1 {
+.ai-preview-modal .prose * {
+  background: transparent !important;
+}
+
+.ai-preview-modal .prose h1 {
   font-size: 1.875rem;
   font-weight: 700;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  color: #111827;
+  color: #111827 !important;
 }
 
-.prose h2 {
+.ai-preview-modal .prose h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #1f2937;
+  color: #1f2937 !important;
 }
 
-.prose h3 {
+.ai-preview-modal .prose h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #374151;
+  color: #374151 !important;
 }
 
-.prose p {
+.ai-preview-modal .prose p {
   margin-bottom: 1rem;
+  color: #374151 !important;
 }
 
-.prose ul,
-.prose ol {
+.ai-preview-modal .prose ul,
+.ai-preview-modal .prose ol {
   margin-bottom: 1rem;
   padding-left: 2em;
 }
 
-.prose ul {
+.ai-preview-modal .prose ul {
   list-style-type: disc;
 }
 
-.prose ol {
+.ai-preview-modal .prose ol {
   list-style-type: decimal;
 }
 
-.prose li {
+.ai-preview-modal .prose li {
   margin-bottom: 0.5rem;
+  color: #374151 !important;
 }
 
-.prose strong {
+.ai-preview-modal .prose strong {
   font-weight: 600;
-  color: #111827;
+  color: #111827 !important;
 }
 
-.prose em {
+.ai-preview-modal .prose em {
   font-style: italic;
+  color: #374151 !important;
 }
 
-.prose code {
-  background-color: #f3f4f6;
+.ai-preview-modal .prose code {
+  background-color: #f3f4f6 !important;
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: monospace;
   font-size: 0.875em;
+  color: #e83e8c !important;
 }
 
-.prose pre {
-  background-color: #f3f4f6;
+.ai-preview-modal .prose pre {
+  background-color: #f8f9fa !important;
   border-radius: 4px;
   padding: 1em;
   overflow-x: auto;
   margin-bottom: 1rem;
+  border: 1px solid #e9ecef;
 }
 
-.prose pre code {
-  background: none;
+.ai-preview-modal .prose pre code {
+  background: transparent !important;
   padding: 0;
   border-radius: 0;
+  color: #374151 !important;
 }
 
-.prose blockquote {
+.ai-preview-modal .prose blockquote {
   border-left: 4px solid #667eea;
   padding-left: 1em;
   margin-left: 0;
   font-style: italic;
-  color: #6b7280;
+  color: #6b7280 !important;
+  background-color: #f9fafb !important;
+  padding: 1em;
+  border-radius: 0 4px 4px 0;
 }
 
 @media (max-width: 768px) {

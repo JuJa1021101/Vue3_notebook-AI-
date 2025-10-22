@@ -80,7 +80,7 @@
     </div>
 
     <!-- Quill Editor -->
-    <div class="bg-white flex-1 overflow-hidden" style="margin-bottom: 0">
+    <div class="bg-white flex-1 overflow-y-auto" style="margin-bottom: 0">
       <QuillEditor
         ref="quillEditor"
         :content="noteForm.content"
@@ -711,20 +711,39 @@ const applyAIResult = (result: string) => {
     if (shouldRenderMarkdown) {
       // 使用marked库解析Markdown为HTML
       import("marked").then(({ marked }) => {
+        // 确保marked配置正确以处理所有Markdown语法
+        marked.setOptions({
+          breaks: true, // 将换行符转换为<br>
+          gfm: true,    // 启用GitHub风格的Markdown
+          headerIds: false, // 禁用自动生成的header id
+        });
+        
         const htmlContent = marked(result);
+        
+        console.log("应用的HTML内容长度:", htmlContent.length);
 
         if (selection && selection.length > 0) {
           // 有选中文本的情况 - 直接替换选中文本
           quill.deleteText(selection.index, selection.length);
           quill.clipboard.dangerouslyPasteHTML(selection.index, htmlContent);
-          quill.setSelection(selection.index + 1);
+          // 设置光标到内容末尾，而不是只前进1个字符
+          quill.setSelection(selection.index + htmlContent.length);
         } else {
           // 没有选中文本的情况（处理全文）- 替换全部内容
           const length = quill.getLength();
           quill.deleteText(0, length);
           quill.clipboard.dangerouslyPasteHTML(0, htmlContent);
-          quill.setSelection(0);
+          // 设置光标到内容末尾
+          quill.setSelection(quill.getLength() - 1);
         }
+
+        // 强制编辑器重新渲染并更新布局
+        setTimeout(() => {
+          const editorContainer = quill.root.parentElement;
+          if (editorContainer) {
+            editorContainer.scrollTop = 0;
+          }
+        }, 0);
 
         toast.success("已应用 AI 结果");
 
@@ -734,6 +753,8 @@ const applyAIResult = (result: string) => {
       });
     } else {
       // 纯文本内容，直接插入
+      console.log("应用的纯文本内容长度:", result.length);
+      
       if (selection && selection.length > 0) {
         // 有选中文本的情况 - 直接替换选中文本
         quill.deleteText(selection.index, selection.length);
@@ -744,8 +765,17 @@ const applyAIResult = (result: string) => {
         const length = quill.getLength();
         quill.deleteText(0, length);
         quill.insertText(0, result);
+        // 设置光标到内容末尾
         quill.setSelection(result.length);
       }
+      
+      // 强制编辑器重新渲染并更新布局
+      setTimeout(() => {
+        const editorContainer = quill.root.parentElement;
+        if (editorContainer) {
+          editorContainer.scrollTop = 0;
+        }
+      }, 0);
 
       toast.success("已应用 AI 结果");
 

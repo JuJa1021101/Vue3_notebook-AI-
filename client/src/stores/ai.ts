@@ -136,7 +136,7 @@ export const useAIStore = defineStore('ai', {
               if (startMatch) {
                 result = result.substring(startMatch.index + 1).trim();
               }
-              
+
               // 去除结尾的优化说明部分
               const endKeywords = ['优化说明', '如图所示'];
               for (const keyword of endKeywords) {
@@ -193,19 +193,34 @@ export const useAIStore = defineStore('ai', {
           }
 
           // 对于格式优化操作，去除说明内容
-          if (action === 'format') {
-            // 去除开头的说明内容
-            const startMatch = result.match(/[：:]\s*\n/);
-            if (startMatch) {
-              result = result.substring(startMatch.index + 1).trim();
+          if (action === 'format' || action === 'beautify') {
+            // 只去除明确的说明性前缀（如"格式优化后："、"优化结果："等）
+            const prefixPatterns = [
+              /^格式优化后[：:]\s*\n/,
+              /^优化结果[：:]\s*\n/,
+              /^排版美化后[：:]\s*\n/,
+              /^以下是优化后的内容[：:]\s*\n/
+            ];
+
+            for (const pattern of prefixPatterns) {
+              const match = result.match(pattern);
+              if (match) {
+                result = result.substring(match[0].length).trim();
+                break;
+              }
             }
-            
-            // 去除结尾的优化说明部分
-            const endKeywords = ['优化说明', '如图所示'];
-            for (const keyword of endKeywords) {
-              const keywordIndex = result.lastIndexOf(keyword);
-              if (keywordIndex !== -1) {
-                result = result.substring(0, keywordIndex).trim();
+
+            // 去除结尾的优化说明部分（更精确的匹配）
+            const endPatterns = [
+              /\n\n---\s*\n优化说明[：:][\s\S]*$/,
+              /\n\n优化说明[：:][\s\S]*$/,
+              /\n\n如图所示[\s\S]*$/
+            ];
+
+            for (const pattern of endPatterns) {
+              const match = result.match(pattern);
+              if (match) {
+                result = result.substring(0, match.index).trim();
                 break;
               }
             }
