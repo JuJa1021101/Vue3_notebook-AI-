@@ -1,5 +1,7 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto transition-colors"
+  >
     <!-- 退出登录确认弹窗 -->
     <LogoutDialog
       v-model="showLogoutDialog"
@@ -8,12 +10,16 @@
     />
 
     <!-- Header -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700 transition-colors"
+    >
       <div class="flex items-center justify-between">
         <button @click="$router.back()" class="p-2 -ml-2">
-          <i class="fas fa-arrow-left text-gray-600"></i>
+          <i class="fas fa-arrow-left text-gray-600 dark:text-gray-300"></i>
         </button>
-        <h1 class="text-lg font-semibold text-gray-900">设置</h1>
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+          设置
+        </h1>
         <div class="w-8"></div>
       </div>
     </div>
@@ -21,7 +27,7 @@
     <!-- Settings Options -->
     <div class="px-4 py-4">
       <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors"
       >
         <div
           v-for="(item, index) in settingsOptions"
@@ -29,7 +35,8 @@
           @click="handleOptionClick(item.name)"
           class="menu-item p-4 flex items-center justify-between cursor-pointer"
           :class="{
-            'border-b border-gray-100': index < settingsOptions.length - 1,
+            'border-b border-gray-100 dark:border-gray-700':
+              index < settingsOptions.length - 1,
             'text-red-500': item.name === 'logout',
           }"
         >
@@ -41,11 +48,15 @@
               "
             ></i>
             <span
-              :class="item.name === 'logout' ? 'text-red-500' : 'text-gray-900'"
+              :class="
+                item.name === 'logout'
+                  ? 'text-red-500'
+                  : 'text-gray-900 dark:text-white'
+              "
               >{{ item.title }}</span
             >
           </div>
-          <i class="fas fa-chevron-right text-gray-300"></i>
+          <i class="fas fa-chevron-right text-gray-300 dark:text-gray-600"></i>
         </div>
       </div>
     </div>

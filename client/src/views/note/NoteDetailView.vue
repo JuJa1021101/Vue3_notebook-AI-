@@ -1,10 +1,14 @@
 <template>
-  <div class="bg-gray-50 h-full flex flex-col">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full flex flex-col transition-colors"
+  >
     <!-- Header -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100 flex-shrink-0">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
+    >
       <div class="flex items-center justify-between">
         <button @click="$router.back()" class="p-2 -ml-2">
-          <i class="fas fa-arrow-left text-gray-600"></i>
+          <i class="fas fa-arrow-left text-gray-600 dark:text-gray-300"></i>
         </button>
         <div class="flex items-center space-x-2">
           <button @click="toggleStar" class="p-2">
@@ -17,24 +21,29 @@
             ></i>
           </button>
           <button @click="shareNote" class="p-2">
-            <i class="fas fa-share text-gray-600"></i>
+            <i class="fas fa-share text-gray-600 dark:text-gray-300"></i>
           </button>
           <button @click="showMenu" class="p-2">
-            <i class="fas fa-ellipsis-h text-gray-600"></i>
+            <i class="fas fa-ellipsis-h text-gray-600 dark:text-gray-300"></i>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Content Area -->
-    <div v-if="note" class="flex-1 overflow-y-auto bg-white">
+    <div
+      v-if="note"
+      class="flex-1 overflow-y-auto bg-white dark:bg-gray-800 transition-colors"
+    >
       <div class="p-4">
         <!-- Note Header -->
         <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {{ note.title }}
           </h1>
-          <div class="flex items-center space-x-4 text-sm text-gray-500">
+          <div
+            class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400"
+          >
             <span>{{ note.createdAt }}</span>
             <span>{{ note.updatedAt !== note.createdAt ? "已编辑" : "" }}</span>
             <span
@@ -51,7 +60,7 @@
             <span
               v-for="tag in note.tags"
               :key="tag"
-              class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+              class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full"
             >
               #{{ tag }}
             </span>
@@ -69,19 +78,19 @@
         <div
           class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"
         ></div>
-        <p class="text-gray-500">加载中...</p>
+        <p class="text-gray-500 dark:text-gray-400">加载中...</p>
       </div>
     </div>
 
     <!-- Attachments -->
     <div
       v-if="note && attachments.length > 0"
-      class="bg-white px-4 py-3 border-t border-gray-100 flex-shrink-0"
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
       style="padding-right: 100px"
     >
       <div class="flex items-center mb-2">
-        <i class="fas fa-paperclip text-gray-400 mr-2"></i>
-        <span class="text-sm font-medium text-gray-700"
+        <i class="fas fa-paperclip text-gray-400 dark:text-gray-500 mr-2"></i>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
           >附件 ({{ attachments.length }})</span
         >
       </div>
@@ -265,6 +274,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   font-size: 16px;
 }
 
+.dark .prose {
+  color: #d1d5db;
+}
+
 /* 标题样式 */
 .prose h1 {
   font-size: 2em;
@@ -273,6 +286,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   margin-bottom: 1rem;
   color: #111827;
   line-height: 1.2;
+}
+
+.dark .prose h1 {
+  color: #f9fafb;
 }
 
 .prose h2 {
@@ -284,6 +301,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   line-height: 1.3;
 }
 
+.dark .prose h2 {
+  color: #f3f4f6;
+}
+
 .prose h3 {
   font-size: 1.25em;
   font-weight: 600;
@@ -291,6 +312,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   margin-bottom: 0.5rem;
   color: #374151;
   line-height: 1.4;
+}
+
+.dark .prose h3 {
+  color: #e5e7eb;
 }
 
 .prose h4 {
@@ -301,6 +326,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   color: #4b5563;
 }
 
+.dark .prose h4 {
+  color: #d1d5db;
+}
+
 .prose h5 {
   font-size: 1em;
   font-weight: 600;
@@ -309,12 +338,20 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   color: #6b7280;
 }
 
+.dark .prose h5 {
+  color: #9ca3af;
+}
+
 .prose h6 {
   font-size: 0.9em;
   font-weight: 600;
   margin-top: 0.75rem;
   margin-bottom: 0.5rem;
   color: #9ca3af;
+}
+
+.dark .prose h6 {
+  color: #6b7280;
 }
 
 /* 段落样式 */
@@ -327,6 +364,10 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 .prose strong {
   font-weight: 600;
   color: #111827;
+}
+
+.dark .prose strong {
+  color: #f9fafb;
 }
 
 .prose em {
@@ -397,6 +438,11 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   border-radius: 0 4px 4px 0;
 }
 
+.dark .prose blockquote {
+  color: #9ca3af;
+  background-color: #1f2937;
+}
+
 .prose blockquote p {
   margin: 0;
 }
@@ -409,6 +455,11 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   font-family: "Courier New", Courier, monospace;
   font-size: 0.875em;
   color: #e83e8c;
+}
+
+.dark .prose code {
+  background-color: #374151;
+  color: #f472b6;
 }
 
 .prose pre {
@@ -472,14 +523,28 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   text-align: left;
 }
 
+.dark .prose table td,
+.dark .prose table th {
+  border: 1px solid #4b5563;
+}
+
 .prose table th {
   background-color: #f9fafb;
   font-weight: 600;
   color: #374151;
 }
 
+.dark .prose table th {
+  background-color: #374151;
+  color: #e5e7eb;
+}
+
 .prose table tr:nth-child(even) {
   background-color: #f9fafb;
+}
+
+.dark .prose table tr:nth-child(even) {
+  background-color: #1f2937;
 }
 
 /* Quill 特定的类名支持 */

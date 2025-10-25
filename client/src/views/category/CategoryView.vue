@@ -1,9 +1,15 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto transition-colors"
+  >
     <!-- Header -->
-    <div class="bg-white px-4 py-4 border-b border-gray-100">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 transition-colors"
+    >
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900">分类管理</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          分类管理
+        </h1>
         <button
           @click="showAddCategoryModal = true"
           class="bg-blue-600 text-white p-2 rounded-full"
@@ -11,7 +17,9 @@
           <i class="fas fa-plus"></i>
         </button>
       </div>
-      <p class="text-sm text-gray-500 mt-1">管理你的笔记分类</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        管理你的笔记分类
+      </p>
     </div>
 
     <!-- Search Bar -->
@@ -21,10 +29,10 @@
           type="text"
           v-model="searchKeyword"
           placeholder="搜索分类..."
-          class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pl-10 text-sm"
+          class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
         />
         <i
-          class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
         ></i>
       </div>
     </div>
@@ -35,7 +43,7 @@
         <div
           v-for="category in filteredCategories"
           :key="category.id"
-          class="category-card bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-pointer"
+          class="category-card bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer transition-all"
           @click="$router.push(`/notes?categoryId=${category.id}`)"
         >
           <div class="flex items-center justify-between mb-3">
@@ -49,11 +57,15 @@
               <i class="fas fa-ellipsis-h text-gray-400"></i>
             </button>
           </div>
-          <h3 class="font-semibold text-gray-900 mb-1">{{ category.name }}</h3>
-          <p class="text-sm text-gray-500 mb-3">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+            {{ category.name }}
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
             {{ category.note_count }} 篇笔记
           </p>
-          <div class="flex items-center text-xs text-gray-400">
+          <div
+            class="flex items-center text-xs text-gray-400 dark:text-gray-500"
+          >
             <i class="fas fa-clock mr-1"></i>
             <span>最近更新：{{ formatTime(category.updated_at) }}</span>
           </div>
@@ -63,8 +75,12 @@
 
     <!-- Quick Stats -->
     <div class="px-4 py-6">
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <h3 class="font-semibold text-gray-900 mb-4">分类统计</h3>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors"
+      >
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">
+          分类统计
+        </h3>
         <div class="space-y-3">
           <div
             v-for="category in topCategories"
@@ -76,10 +92,12 @@
                 class="w-3 h-3 rounded-full"
                 :style="{ backgroundColor: category.color }"
               ></div>
-              <span class="text-sm text-gray-600">{{ category.name }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-300">{{
+                category.name
+              }}</span>
             </div>
             <div class="flex items-center space-x-2">
-              <div class="w-20 h-2 bg-gray-200 rounded-full">
+              <div class="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                 <div
                   class="h-full rounded-full"
                   :style="{
@@ -88,7 +106,7 @@
                   }"
                 ></div>
               </div>
-              <span class="text-sm text-gray-500">{{
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{
                 category.note_count
               }}</span>
             </div>
@@ -103,15 +121,20 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       @click="showDeleteConfirm = false"
     >
-      <div class="bg-white rounded-xl p-6 w-full max-w-sm" @click.stop>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm transition-colors"
+        @click.stop
+      >
         <div class="text-center mb-4">
           <div
-            class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+            class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-3"
           >
             <i class="fas fa-trash text-red-600 text-xl"></i>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">删除分类</h3>
-          <p class="text-sm text-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            删除分类
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300">
             确定要删除分类"{{ categoryToDelete?.name }}"吗？
           </p>
           <p
@@ -128,7 +151,7 @@
           <button
             @click="showDeleteConfirm = false"
             :disabled="deleting"
-            class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg disabled:opacity-50"
+            class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg disabled:opacity-50 transition-colors"
           >
             取消
           </button>
@@ -149,22 +172,29 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       @click="showAddCategoryModal = false"
     >
-      <div class="bg-white rounded-xl p-6 w-full max-w-sm" @click.stop>
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">新建分类</h3>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm transition-colors"
+        @click.stop
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          新建分类
+        </h3>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >分类名称</label
             >
             <input
               type="text"
               v-model="newCategory.name"
               placeholder="输入分类名称"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >选择图标</label
             >
             <div class="grid grid-cols-6 gap-2">
@@ -184,7 +214,8 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >选择颜色</label
             >
             <div class="grid grid-cols-8 gap-2">
@@ -205,7 +236,7 @@
         <div class="flex space-x-3 mt-6">
           <button
             @click="showAddCategoryModal = false"
-            class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg"
+            class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg transition-colors"
           >
             取消
           </button>

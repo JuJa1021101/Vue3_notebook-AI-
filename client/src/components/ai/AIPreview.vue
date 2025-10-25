@@ -1,9 +1,12 @@
 <template>
   <div class="ai-preview-modal" @click.self="close">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>AI 处理结果</h3>
-        <button class="close-btn" @click="close">
+    <div class="modal-content bg-white dark:bg-gray-800 transition-colors">
+      <div class="modal-header border-gray-200 dark:border-gray-700">
+        <h3 class="text-gray-900 dark:text-white">AI 处理结果</h3>
+        <button
+          class="close-btn text-gray-400 dark:text-gray-500"
+          @click="close"
+        >
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -12,11 +15,13 @@
         <div class="preview-container">
           <!-- 原文 -->
           <div class="preview-section">
-            <div class="section-header">
-              <i class="fas fa-file-alt"></i>
+            <div class="section-header text-gray-600 dark:text-gray-300">
+              <i class="fas fa-file-alt text-blue-600 dark:text-blue-400"></i>
               <span>原文</span>
             </div>
-            <div class="content-box">
+            <div
+              class="content-box bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 transition-colors"
+            >
               {{ originalContent }}
             </div>
           </div>
@@ -28,8 +33,8 @@
 
           <!-- AI 处理后 -->
           <div class="preview-section">
-            <div class="section-header">
-              <i class="fas fa-magic"></i>
+            <div class="section-header text-gray-600 dark:text-gray-300">
+              <i class="fas fa-magic text-blue-600 dark:text-blue-400"></i>
               <span>AI 优化后</span>
               <div v-if="isProcessing" class="typing-indicator">
                 <span class="typing-dot"></span>
@@ -38,7 +43,7 @@
               </div>
             </div>
             <div
-              class="content-box highlight prose"
+              class="content-box highlight prose bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-gray-900 dark:text-gray-100 transition-colors"
               ref="processedContentRef"
               :class="{ streaming: isProcessing }"
             >
@@ -67,11 +72,17 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="close">
+      <div class="modal-footer border-gray-200 dark:border-gray-700">
+        <button
+          class="btn btn-secondary bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+          @click="close"
+        >
           <i class="fas fa-times"></i>
         </button>
-        <button class="btn btn-regenerate" @click="regenerate">
+        <button
+          class="btn btn-regenerate bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400"
+          @click="regenerate"
+        >
           <i class="fas fa-redo"></i>
         </button>
         <button class="btn btn-primary" @click="apply">
@@ -186,7 +197,6 @@ const regenerate = () => {
   padding: 20px;
 
   .modal-content {
-    background: white;
     border-radius: 12px;
     width: 100%;
     max-width: 900px;
@@ -200,26 +210,23 @@ const regenerate = () => {
       align-items: center;
       justify-content: space-between;
       padding: 20px;
-      border-bottom: 1px solid #e9ecef;
 
       h3 {
         margin: 0;
         font-size: 18px;
         font-weight: 600;
-        color: #333;
       }
 
       .close-btn {
         background: none;
         border: none;
         font-size: 20px;
-        color: #999;
         cursor: pointer;
         padding: 4px;
         transition: color 0.3s;
 
         &:hover {
-          color: #333;
+          @apply text-gray-900 dark:text-gray-100;
         }
       }
     }
@@ -247,11 +254,6 @@ const regenerate = () => {
             margin-bottom: 12px;
             font-size: 14px;
             font-weight: 600;
-            color: #666;
-
-            i {
-              color: #667eea;
-            }
 
             .typing-indicator {
               display: flex;
@@ -296,8 +298,7 @@ const regenerate = () => {
 
           .content-box {
             padding: 16px;
-            background: #f8f9fa !important;
-            border: 1px solid #e9ecef;
+            border: 1px solid;
             border-radius: 8px;
             min-height: 200px;
             max-height: 400px;
@@ -305,15 +306,12 @@ const regenerate = () => {
             overflow-x: hidden;
             font-size: 14px;
             line-height: 1.6;
-            color: #333 !important;
             white-space: pre-wrap;
             word-wrap: break-word;
             word-break: break-word;
             overflow-wrap: break-word;
 
             &.highlight {
-              background: #f0f2ff !important;
-              border-color: #667eea;
               transition: scroll-top 0.3s ease;
 
               &.streaming {
@@ -337,16 +335,16 @@ const regenerate = () => {
             }
 
             &::-webkit-scrollbar-track {
-              background: #f1f1f1;
+              @apply bg-gray-100 dark:bg-gray-700;
               border-radius: 3px;
             }
 
             &::-webkit-scrollbar-thumb {
-              background: #888;
+              @apply bg-gray-400 dark:bg-gray-500;
               border-radius: 3px;
 
               &:hover {
-                background: #555;
+                @apply bg-gray-500 dark:bg-gray-400;
               }
             }
           }
@@ -366,7 +364,7 @@ const regenerate = () => {
         display: flex;
         gap: 20px;
         padding: 12px 16px;
-        background: #f8f9fa;
+        @apply bg-gray-50 dark:bg-gray-700;
         border-radius: 8px;
 
         .stat-item {
@@ -374,10 +372,10 @@ const regenerate = () => {
           align-items: center;
           gap: 8px;
           font-size: 13px;
-          color: #666;
+          @apply text-gray-600 dark:text-gray-300;
 
           i {
-            color: #667eea;
+            @apply text-blue-600 dark:text-blue-400;
           }
         }
       }
@@ -388,7 +386,6 @@ const regenerate = () => {
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      border-top: 1px solid #e9ecef;
 
       .btn {
         width: 48px;
@@ -403,21 +400,16 @@ const regenerate = () => {
         justify-content: center;
 
         &.btn-secondary {
-          background: #f8f9fa;
-          color: #666;
-
           &:hover {
-            background: #e9ecef;
+            @apply bg-gray-200 dark:bg-gray-600;
           }
         }
 
         &.btn-regenerate {
-          background: white;
-          color: #667eea;
-          border: 1px solid #667eea;
+          border: 1px solid;
 
           &:hover {
-            background: #f0f2ff;
+            @apply bg-blue-50 dark:bg-blue-900/20;
           }
         }
 
@@ -437,9 +429,9 @@ const regenerate = () => {
 
 /* Markdown 样式 - 使用更高优先级 */
 .ai-preview-modal .prose {
-  color: #374151 !important;
   line-height: 1.75;
   background: transparent !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose * {
@@ -451,7 +443,7 @@ const regenerate = () => {
   font-weight: 700;
   margin-top: 2rem;
   margin-bottom: 1rem;
-  color: #111827 !important;
+  @apply text-gray-900 dark:text-gray-100;
 }
 
 .ai-preview-modal .prose h2 {
@@ -459,7 +451,7 @@ const regenerate = () => {
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
-  color: #1f2937 !important;
+  @apply text-gray-800 dark:text-gray-100;
 }
 
 .ai-preview-modal .prose h3 {
@@ -467,12 +459,12 @@ const regenerate = () => {
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
-  color: #374151 !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose p {
   margin-bottom: 1rem;
-  color: #374151 !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose ul,
@@ -491,51 +483,49 @@ const regenerate = () => {
 
 .ai-preview-modal .prose li {
   margin-bottom: 0.5rem;
-  color: #374151 !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose strong {
   font-weight: 600;
-  color: #111827 !important;
+  @apply text-gray-900 dark:text-gray-100;
 }
 
 .ai-preview-modal .prose em {
   font-style: italic;
-  color: #374151 !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose code {
-  background-color: #f3f4f6 !important;
+  @apply bg-gray-100 dark:bg-gray-700;
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: monospace;
   font-size: 0.875em;
-  color: #e83e8c !important;
+  @apply text-pink-600 dark:text-pink-400;
 }
 
 .ai-preview-modal .prose pre {
-  background-color: #f8f9fa !important;
+  @apply bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
   border-radius: 4px;
   padding: 1em;
   overflow-x: auto;
   margin-bottom: 1rem;
-  border: 1px solid #e9ecef;
 }
 
 .ai-preview-modal .prose pre code {
   background: transparent !important;
   padding: 0;
   border-radius: 0;
-  color: #374151 !important;
+  @apply text-gray-700 dark:text-gray-200;
 }
 
 .ai-preview-modal .prose blockquote {
-  border-left: 4px solid #667eea;
+  @apply border-l-4 border-blue-600 dark:border-blue-400;
   padding-left: 1em;
   margin-left: 0;
   font-style: italic;
-  color: #6b7280 !important;
-  background-color: #f9fafb !important;
+  @apply text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800;
   padding: 1em;
   border-radius: 0 4px 4px 0;
 }

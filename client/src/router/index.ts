@@ -95,6 +95,11 @@ const routes: RouteRecordRaw[] = [
         path: 'profile/about',
         name: 'About',
         component: () => import('@/views/profile/AboutView.vue')
+      },
+      {
+        path: 'profile/theme',
+        name: 'ThemeSettings',
+        component: () => import('@/views/profile/ThemeSettingsView.vue')
       }
     ]
   }

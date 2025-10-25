@@ -1,7 +1,9 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto transition-colors"
+  >
     <!-- Search Header -->
-    <div class="bg-white px-4 py-4">
+    <div class="bg-white dark:bg-gray-800 px-4 py-4 transition-colors">
       <div class="relative">
         <input
           type="text"
@@ -9,10 +11,10 @@
           @input="debouncedSearch"
           @keyup.enter="handleSearch"
           placeholder="搜索笔记内容、标题、标签..."
-          class="w-full bg-gray-100 border-none rounded-xl px-4 py-3 pl-10 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+          class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-xl px-4 py-3 pl-10 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 transition-all"
         />
         <i
-          class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
         ></i>
         <button
           v-if="searchQuery"
@@ -25,7 +27,7 @@
     </div>
 
     <!-- Search Filters -->
-    <div class="bg-white px-4 pb-3">
+    <div class="bg-white dark:bg-gray-800 px-4 pb-3 transition-colors">
       <div class="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           v-for="filter in searchFilters"
@@ -35,7 +37,7 @@
           :class="
             activeFilter === filter.key
               ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           "
         >
           {{ filter.label }}
@@ -46,9 +48,11 @@
     <!-- Recent Searches -->
     <div
       v-if="!searchQuery && !hasSearched && recentSearches.length > 0"
-      class="bg-white px-4 py-4 mb-2"
+      class="bg-white dark:bg-gray-800 px-4 py-4 mb-2 transition-colors"
     >
-      <h3 class="text-sm font-medium text-gray-500 mb-3">最近搜索</h3>
+      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+        最近搜索
+      </h3>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="term in recentSearches"
@@ -57,7 +61,7 @@
             searchQuery = term;
             handleSearch();
           "
-          class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+          class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           {{ term }}
         </button>
@@ -69,7 +73,9 @@
       v-if="!searchQuery && !hasSearched && hotTags.length > 0"
       class="px-4 py-4"
     >
-      <h3 class="text-sm font-medium text-gray-500 mb-3">热门标签</h3>
+      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+        热门标签
+      </h3>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="tag in hotTags"
@@ -97,8 +103,10 @@
     <!-- Search Results -->
     <div v-else-if="hasSearched && searchResults.length > 0" class="px-4 py-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-medium text-gray-500">搜索结果</h3>
-        <span class="text-sm text-gray-400"
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          搜索结果
+        </h3>
+        <span class="text-sm text-gray-400 dark:text-gray-500"
           >找到 {{ totalResults }} 个结果</span
         >
       </div>
@@ -107,20 +115,21 @@
         <div
           v-for="result in searchResults"
           :key="result.id"
-          class="search-result bg-white p-4 rounded-xl border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+          class="search-result bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-md transition-all"
           @click="goToNote(result.id)"
         >
           <div class="flex items-start justify-between mb-2">
             <h4
-              class="font-semibold text-gray-900 flex-1"
+              class="font-semibold text-gray-900 dark:text-white flex-1"
               v-html="highlightText(result.title)"
             ></h4>
-            <span class="text-xs text-gray-400 ml-2 whitespace-nowrap">{{
-              formatDate(result.created_at)
-            }}</span>
+            <span
+              class="text-xs text-gray-400 dark:text-gray-500 ml-2 whitespace-nowrap"
+              >{{ formatDate(result.created_at) }}</span
+            >
           </div>
           <p
-            class="text-sm text-gray-600 mb-3 line-clamp-2"
+            class="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2"
             v-html="highlightText(result.content_text || '')"
           ></p>
           <div class="flex items-center justify-between">
@@ -155,12 +164,16 @@
       class="px-4 py-8 text-center"
     >
       <div
-        class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors"
       >
-        <i class="fas fa-search text-2xl text-gray-400"></i>
+        <i class="fas fa-search text-2xl text-gray-400 dark:text-gray-500"></i>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">未找到相关内容</h3>
-      <p class="text-sm text-gray-500 mb-4">尝试使用其他关键词或检查拼写</p>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        未找到相关内容
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        尝试使用其他关键词或检查拼写
+      </p>
     </div>
 
     <!-- Search Suggestions -->
@@ -168,7 +181,9 @@
       v-if="searchQuery && searchQuery.length < 3 && !hasSearched"
       class="px-4 py-4"
     >
-      <h3 class="text-sm font-medium text-gray-500 mb-3">搜索建议</h3>
+      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+        搜索建议
+      </h3>
       <div class="space-y-2">
         <button
           v-for="suggestion in searchSuggestions"
@@ -177,10 +192,12 @@
             searchQuery = suggestion;
             handleSearch();
           "
-          class="w-full text-left p-3 bg-white rounded-lg border border-gray-100 flex items-center space-x-3"
+          class="w-full text-left p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 flex items-center space-x-3 transition-colors"
         >
-          <i class="fas fa-search text-gray-400"></i>
-          <span class="text-sm text-gray-600">{{ suggestion }}</span>
+          <i class="fas fa-search text-gray-400 dark:text-gray-500"></i>
+          <span class="text-sm text-gray-600 dark:text-gray-300">{{
+            suggestion
+          }}</span>
         </button>
       </div>
     </div>

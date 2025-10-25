@@ -1,45 +1,44 @@
 <template>
-  <div class="bg-gray-50 min-h-screen">
+  <div class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
     <!-- Header -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700 transition-colors"
+    >
       <div class="flex items-center justify-between">
         <button @click="$router.back()" class="p-2 -ml-2">
-          <i class="fas fa-arrow-left text-gray-600"></i>
+          <i class="fas fa-arrow-left text-gray-600 dark:text-gray-300"></i>
         </button>
-        <h1 class="text-lg font-semibold text-gray-900">账户管理</h1>
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+          账户管理
+        </h1>
         <div class="w-10"></div>
       </div>
     </div>
 
     <!-- Profile Info -->
-    <div class="bg-white mt-2 px-4 py-4">
+    <div class="bg-white dark:bg-gray-800 mt-2 px-4 py-4 transition-colors">
       <!-- Avatar -->
       <div
-        class="flex items-center justify-between py-3 border-b border-gray-100"
+        class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700"
       >
-        <span class="text-gray-700">头像</span>
-        <div class="flex items-center space-x-3">
+        <span class="text-gray-700 dark:text-gray-300">头像</span>
+        <div class="flex items-center">
           <img
             :src="userInfo.avatar || defaultAvatar"
             alt="头像"
-            class="w-12 h-12 rounded-full object-cover"
+            class="w-12 h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+            @click="showAvatarModal = true"
           />
-          <button
-            @click="showAvatarUpload = true"
-            class="text-blue-600 text-sm"
-          >
-            更换
-          </button>
         </div>
       </div>
 
       <!-- Nickname -->
       <div
-        class="flex items-center justify-between py-3 border-b border-gray-100"
+        class="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700"
       >
-        <span class="text-gray-700">昵称</span>
+        <span class="text-gray-700 dark:text-gray-300">昵称</span>
         <div class="flex items-center space-x-3">
-          <span class="text-gray-900">{{
+          <span class="text-gray-900 dark:text-white">{{
             userInfo.nickname || userInfo.username
           }}</span>
           <button
@@ -53,17 +52,21 @@
 
       <!-- Username -->
       <div class="flex items-center justify-between py-3">
-        <span class="text-gray-700">用户名</span>
-        <span class="text-gray-500">{{ userInfo.username }}</span>
+        <span class="text-gray-700 dark:text-gray-300">用户名</span>
+        <span class="text-gray-500 dark:text-gray-400">{{
+          userInfo.username
+        }}</span>
       </div>
     </div>
 
     <!-- Security -->
-    <div class="bg-white mt-2 px-4 py-4">
+    <div class="bg-white dark:bg-gray-800 mt-2 px-4 py-4 transition-colors">
       <div class="flex items-center justify-between py-3">
         <div>
-          <div class="text-gray-700">修改密码</div>
-          <div class="text-xs text-gray-500 mt-1">定期修改密码保护账号安全</div>
+          <div class="text-gray-700 dark:text-gray-300">修改密码</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            定期修改密码保护账号安全
+          </div>
         </div>
         <button
           @click="showPasswordChange = true"
@@ -80,9 +83,14 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
       @click="showNicknameEdit = false"
     >
-      <div class="bg-white rounded-lg shadow-xl w-80 mx-4" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">修改昵称</h3>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-80 mx-4 transition-colors"
+        @click.stop
+      >
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            修改昵称
+          </h3>
         </div>
         <div class="px-6 py-4">
           <input
@@ -92,16 +100,16 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             maxlength="20"
           />
-          <p class="text-xs text-gray-500 mt-2">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
             {{ nicknameForm.nickname.length }}/20
           </p>
         </div>
         <div
-          class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3"
+          class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3"
         >
           <button
             @click="showNicknameEdit = false"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             取消
           </button>
@@ -116,63 +124,67 @@
       </div>
     </div>
 
-    <!-- Avatar Upload Dialog -->
+    <!-- Avatar Modal - 抖音风格 -->
     <div
-      v-if="showAvatarUpload"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      @click="showAvatarUpload = false"
+      v-if="showAvatarModal"
+      class="fixed inset-0 z-50 bg-black"
+      @click="closeAvatarModal"
     >
-      <div class="bg-white rounded-lg shadow-xl w-80 mx-4" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">更换头像</h3>
-        </div>
-        <div class="px-6 py-4">
-          <div class="text-center">
-            <img
-              :src="avatarPreview || userInfo.avatar || defaultAvatar"
-              alt="头像预览"
-              class="w-24 h-24 rounded-full object-cover mx-auto mb-4"
-            />
-            <input
-              ref="avatarInput"
-              type="file"
-              accept="image/*"
-              class="hidden"
-              @change="handleAvatarSelect"
-            />
-            <button
-              @click="$refs.avatarInput.click()"
-              class="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
-            >
-              选择图片
-            </button>
-            <p class="text-xs text-gray-500 mt-2">
-              支持 JPG、PNG 格式，大小不超过 2MB
-            </p>
-          </div>
-        </div>
-        <div
-          class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3"
-        >
+      <!-- 关闭按钮 -->
+      <button
+        @click="closeAvatarModal"
+        class="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center"
+      >
+        <i class="fas fa-times text-white text-2xl"></i>
+      </button>
+
+      <!-- 头像展示区域 -->
+      <div class="flex items-center justify-center h-full px-4" @click.stop>
+        <img
+          :src="avatarPreview || userInfo.avatar || defaultAvatar"
+          alt="头像"
+          class="max-w-full max-h-[70vh] object-contain rounded-lg"
+        />
+      </div>
+
+      <!-- 底部操作栏 -->
+      <div
+        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent pb-8 pt-20"
+        @click.stop
+      >
+        <div class="px-6 space-y-3">
+          <!-- 更换头像按钮 -->
           <button
-            @click="
-              showAvatarUpload = false;
-              avatarPreview = null;
-              avatarFile = null;
-            "
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            @click="$refs.avatarInput.click()"
+            class="w-full flex items-center justify-center space-x-3 bg-white/10 backdrop-blur-sm text-white py-4 rounded-xl hover:bg-white/20 transition-colors"
           >
-            取消
+            <i class="fas fa-edit text-xl"></i>
+            <span class="text-base font-medium">更换头像</span>
           </button>
+
+          <!-- 保存头像按钮 -->
           <button
+            v-if="avatarFile"
             @click="updateAvatar"
-            :disabled="!avatarFile || updating"
-            class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            :disabled="updating"
+            class="w-full flex items-center justify-center space-x-3 bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {{ updating ? "上传中..." : "确定" }}
+            <i class="fas fa-check text-xl"></i>
+            <span class="text-base font-medium">{{
+              updating ? "保存中..." : "保存头像"
+            }}</span>
           </button>
         </div>
       </div>
+
+      <!-- 隐藏的文件选择器 -->
+      <input
+        ref="avatarInput"
+        type="file"
+        accept="image/*"
+        class="hidden"
+        @change="handleAvatarSelect"
+      />
     </div>
 
     <!-- Password Change Dialog -->
@@ -181,48 +193,59 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
       @click="showPasswordChange = false"
     >
-      <div class="bg-white rounded-lg shadow-xl w-80 mx-4" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">修改密码</h3>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-80 mx-4 transition-colors"
+        @click.stop
+      >
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            修改密码
+          </h3>
         </div>
         <div class="px-6 py-4 space-y-4">
           <div>
-            <label class="block text-sm text-gray-700 mb-2">旧密码</label>
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mb-2"
+              >旧密码</label
+            >
             <input
               v-model="passwordForm.oldPassword"
               type="password"
               placeholder="请输入旧密码"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-700 mb-2">新密码</label>
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mb-2"
+              >新密码</label
+            >
             <input
               v-model="passwordForm.newPassword"
               type="password"
               placeholder="请输入新密码（6-20位）"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-700 mb-2">确认新密码</label>
+            <label class="block text-sm text-gray-700 dark:text-gray-300 mb-2"
+              >确认新密码</label
+            >
             <input
               v-model="passwordForm.confirmPassword"
               type="password"
               placeholder="请再次输入新密码"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
             />
           </div>
         </div>
         <div
-          class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3"
+          class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3"
         >
           <button
             @click="
               showPasswordChange = false;
               resetPasswordForm();
             "
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             取消
           </button>
@@ -250,7 +273,8 @@ import { toast } from "@/utils/toast";
 import { useAuthStore } from "@/stores/auth";
 
 const authStore = useAuthStore();
-const defaultAvatar = "https://via.placeholder.com/150/667eea/ffffff?text=User";
+const defaultAvatar =
+  "https://xd-video-pc-img.oss-cn-beijing.aliyuncs.com/xdclass_pro/default/head_img/10.jpeg";
 
 const userInfo = ref({
   id: 0,
@@ -260,7 +284,7 @@ const userInfo = ref({
 });
 
 const showNicknameEdit = ref(false);
-const showAvatarUpload = ref(false);
+const showAvatarModal = ref(false);
 const showPasswordChange = ref(false);
 const updating = ref(false);
 
@@ -298,7 +322,7 @@ const loadUserInfo = () => {
       id: user.id,
       username: user.username,
       nickname: user.nickname || user.username,
-      avatar: user.avatar || "",
+      avatar: user.avatar_url || user.avatar || "",
     };
     nicknameForm.value.nickname = userInfo.value.nickname;
   }
@@ -354,12 +378,16 @@ const handleAvatarSelect = (event: Event) => {
   // 检查文件类型
   if (!file.type.startsWith("image/")) {
     toast.error("请选择图片文件");
+    // 重置文件选择器
+    target.value = "";
     return;
   }
 
   // 检查文件大小（2MB）
   if (file.size > 2 * 1024 * 1024) {
     toast.error("图片大小不能超过 2MB");
+    // 重置文件选择器
+    target.value = "";
     return;
   }
 
@@ -371,11 +399,20 @@ const handleAvatarSelect = (event: Event) => {
     avatarPreview.value = e.target?.result as string;
   };
   reader.readAsDataURL(file);
+
+  // 重置文件选择器，允许重复选择同一文件
+  target.value = "";
+};
+
+const closeAvatarModal = () => {
+  showAvatarModal.value = false;
+  avatarPreview.value = null;
+  avatarFile.value = null;
 };
 
 const updateAvatar = async () => {
   if (!avatarFile.value) {
-    toast.error("请选择图片");
+    toast.error("请先选择图片");
     return;
   }
 
@@ -385,6 +422,8 @@ const updateAvatar = async () => {
 
     if (response.data.success) {
       const avatarUrl = response.data.data.url;
+
+      // 立即更新本地显示的头像
       userInfo.value.avatar = avatarUrl;
 
       // 更新 localStorage
@@ -402,9 +441,11 @@ const updateAvatar = async () => {
       }
 
       toast.success("头像更新成功");
-      showAvatarUpload.value = false;
-      avatarPreview.value = null;
-      avatarFile.value = null;
+
+      // 延迟关闭弹窗，让用户看到成功提示
+      setTimeout(() => {
+        closeAvatarModal();
+      }, 500);
     } else {
       toast.error(response.data.message || "上传失败");
     }

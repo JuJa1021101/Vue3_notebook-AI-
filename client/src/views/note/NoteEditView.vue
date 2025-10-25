@@ -1,12 +1,16 @@
 <template>
-  <div class="bg-gray-50 h-full flex flex-col">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full flex flex-col transition-colors"
+  >
     <!-- Header -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100 flex-shrink-0">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
+    >
       <div class="flex items-center justify-between">
         <button @click="goBack" class="p-2 -ml-2">
-          <i class="fas fa-arrow-left text-gray-600"></i>
+          <i class="fas fa-arrow-left text-gray-600 dark:text-gray-300"></i>
         </button>
-        <h1 class="text-lg font-semibold text-gray-900">
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
           {{ isEdit ? "编辑笔记" : "新建笔记" }}
         </h1>
         <button
@@ -20,23 +24,27 @@
     </div>
 
     <!-- Title Input -->
-    <div class="bg-white px-4 py-4 border-b border-gray-100 flex-shrink-0">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
+    >
       <input
         type="text"
         v-model="noteForm.title"
         placeholder="请输入标题..."
-        class="w-full text-xl font-semibold text-gray-900 placeholder-gray-400 border-none outline-none bg-transparent"
+        class="w-full text-xl font-semibold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-none outline-none bg-transparent"
       />
     </div>
 
     <!-- Category and Tags -->
-    <div class="bg-white px-4 py-3 border-b border-gray-100 flex-shrink-0">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
+    >
       <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
-          <i class="fas fa-folder text-gray-400"></i>
+          <i class="fas fa-folder text-gray-400 dark:text-gray-500"></i>
           <select
             v-model="noteForm.categoryId"
-            class="text-sm text-gray-600 border-none outline-none bg-transparent"
+            class="text-sm text-gray-600 dark:text-gray-300 border-none outline-none bg-transparent"
           >
             <option value="" disabled>选择分类</option>
             <option
@@ -49,14 +57,14 @@
           </select>
         </div>
         <div class="flex items-center space-x-2">
-          <i class="fas fa-tag text-gray-400"></i>
+          <i class="fas fa-tag text-gray-400 dark:text-gray-500"></i>
           <input
             type="text"
             v-model="tagInput"
             @keydown.enter="addTag"
             @keydown.space="addTag"
             placeholder="添加标签"
-            class="text-sm text-gray-600 border-none outline-none bg-transparent"
+            class="text-sm text-gray-600 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 border-none outline-none bg-transparent"
           />
         </div>
       </div>
@@ -66,7 +74,7 @@
         <span
           v-for="(tag, index) in noteForm.tags"
           :key="index"
-          class="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+          class="inline-flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full"
         >
           {{ tag }}
           <button
@@ -80,7 +88,10 @@
     </div>
 
     <!-- Quill Editor -->
-    <div class="bg-white flex-1 overflow-y-auto" style="margin-bottom: 0">
+    <div
+      class="bg-white dark:bg-gray-800 flex-1 overflow-y-auto transition-colors"
+      style="margin-bottom: 0"
+    >
       <QuillEditor
         ref="quillEditor"
         :content="noteForm.content"
@@ -96,12 +107,12 @@
     <!-- 附件列表 -->
     <div
       v-if="attachments.length > 0"
-      class="bg-white px-4 py-3 border-t border-gray-100 flex-shrink-0"
+      class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex-shrink-0 transition-colors"
       style="margin-right: 100px"
     >
       <div class="flex items-center mb-2">
-        <i class="fas fa-paperclip text-gray-400 mr-2"></i>
-        <span class="text-sm font-medium text-gray-700"
+        <i class="fas fa-paperclip text-gray-400 dark:text-gray-500 mr-2"></i>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
           >附件 ({{ attachments.length }})</span
         >
       </div>
@@ -714,12 +725,12 @@ const applyAIResult = (result: string) => {
         // 确保marked配置正确以处理所有Markdown语法
         marked.setOptions({
           breaks: true, // 将换行符转换为<br>
-          gfm: true,    // 启用GitHub风格的Markdown
+          gfm: true, // 启用GitHub风格的Markdown
           headerIds: false, // 禁用自动生成的header id
         });
-        
+
         const htmlContent = marked(result);
-        
+
         console.log("应用的HTML内容长度:", htmlContent.length);
 
         if (selection && selection.length > 0) {
@@ -754,7 +765,7 @@ const applyAIResult = (result: string) => {
     } else {
       // 纯文本内容，直接插入
       console.log("应用的纯文本内容长度:", result.length);
-      
+
       if (selection && selection.length > 0) {
         // 有选中文本的情况 - 直接替换选中文本
         quill.deleteText(selection.index, selection.length);
@@ -768,7 +779,7 @@ const applyAIResult = (result: string) => {
         // 设置光标到内容末尾
         quill.setSelection(result.length);
       }
-      
+
       // 强制编辑器重新渲染并更新布局
       setTimeout(() => {
         const editorContainer = quill.root.parentElement;

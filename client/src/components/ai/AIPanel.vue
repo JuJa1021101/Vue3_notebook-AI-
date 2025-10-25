@@ -1,9 +1,12 @@
 <template>
   <div>
     <transition name="slide-fade">
-      <div v-if="showPanel" class="ai-panel">
+      <div
+        v-if="showPanel"
+        class="ai-panel bg-white dark:bg-gray-800 transition-colors"
+      >
         <div class="panel-header">
-          <h3>
+          <h3 class="text-white">
             <i class="fas fa-magic"></i>
             AI 写作助手
           </h3>
@@ -18,45 +21,65 @@
             <button
               v-for="action in actions"
               :key="action.id"
-              class="action-btn"
+              class="action-btn bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 transition-colors"
               :disabled="isProcessing || !canUseAI"
               @click="handleAction(action.id)"
             >
-              <i :class="action.icon"></i>
+              <i
+                :class="action.icon"
+                class="text-blue-600 dark:text-blue-400"
+              ></i>
               <div class="action-info">
-                <span class="action-name">{{ action.name }}</span>
-                <span class="action-desc">{{ action.description }}</span>
+                <span class="action-name text-gray-900 dark:text-white">{{
+                  action.name
+                }}</span>
+                <span class="action-desc text-gray-500 dark:text-gray-400">{{
+                  action.description
+                }}</span>
               </div>
             </button>
           </div>
 
           <!-- 使用统计 -->
-          <div v-if="stats" class="usage-stats">
+          <div
+            v-if="stats"
+            class="usage-stats bg-gray-50 dark:bg-gray-700 transition-colors"
+          >
             <div class="stat-item">
-              <span class="stat-label">今日使用</span>
-              <span class="stat-value"
+              <span class="stat-label text-gray-600 dark:text-gray-300"
+                >今日使用</span
+              >
+              <span class="stat-value text-blue-600 dark:text-blue-400"
                 >{{ remainingQuota.daily }} / {{ stats.limits.daily }}</span
               >
             </div>
             <div class="stat-item">
-              <span class="stat-label">本小时</span>
-              <span class="stat-value"
+              <span class="stat-label text-gray-600 dark:text-gray-300"
+                >本小时</span
+              >
+              <span class="stat-value text-blue-600 dark:text-blue-400"
                 >{{ remainingQuota.hourly }} / {{ stats.limits.hourly }}</span
               >
             </div>
           </div>
 
           <!-- 设置按钮 -->
-          <button class="settings-btn" @click="showSettings = true">
+          <button
+            class="settings-btn bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 transition-colors"
+            @click="showSettings = true"
+          >
             <i class="fas fa-cog"></i>
             设置
           </button>
         </div>
 
         <!-- 加载状态 -->
-        <div v-if="isProcessing" class="processing-overlay">
-          <div class="spinner"></div>
-          <p>AI 正在处理中...</p>
+        <div
+          v-if="isProcessing"
+          class="processing-overlay bg-white/95 dark:bg-gray-800/95"
+        >
+          <div class="spinner border-gray-200 dark:border-gray-700"></div>
+          <p class="text-gray-600 dark:text-gray-300">AI 正在处理中...</p>
         </div>
       </div>
     </transition>
@@ -142,7 +165,6 @@ onMounted(() => {
   right: 30px;
   bottom: 170px;
   width: 320px;
-  background: white;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 998;
@@ -197,16 +219,15 @@ onMounted(() => {
         align-items: center;
         gap: 12px;
         padding: 12px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
+        border: none;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s;
         text-align: left;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
         i {
           font-size: 20px;
-          color: #667eea;
           width: 24px;
           text-align: center;
         }
@@ -220,19 +241,17 @@ onMounted(() => {
           .action-name {
             font-size: 14px;
             font-weight: 500;
-            color: #333;
           }
 
           .action-desc {
             font-size: 12px;
-            color: #999;
           }
         }
 
         &:hover:not(:disabled) {
-          background: #f0f2ff;
-          border-color: #667eea;
-          transform: translateX(-2px);
+          @apply bg-blue-50 dark:bg-blue-900/20;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         &:disabled {
@@ -244,7 +263,6 @@ onMounted(() => {
 
     .usage-stats {
       padding: 12px;
-      background: #f8f9fa;
       border-radius: 8px;
       margin-bottom: 12px;
 
@@ -256,13 +274,11 @@ onMounted(() => {
 
         .stat-label {
           font-size: 13px;
-          color: #666;
         }
 
         .stat-value {
           font-size: 13px;
           font-weight: 600;
-          color: #667eea;
         }
       }
     }
@@ -270,10 +286,8 @@ onMounted(() => {
     .settings-btn {
       width: 100%;
       padding: 10px;
-      background: white;
-      border: 1px solid #e9ecef;
+      border: none;
       border-radius: 8px;
-      color: #666;
       font-size: 14px;
       cursor: pointer;
       transition: all 0.3s;
@@ -281,11 +295,12 @@ onMounted(() => {
       align-items: center;
       justify-content: center;
       gap: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
       &:hover {
-        background: #f8f9fa;
-        border-color: #667eea;
-        color: #667eea;
+        @apply bg-gray-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
     }
   }
@@ -296,7 +311,6 @@ onMounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -306,7 +320,8 @@ onMounted(() => {
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid #f3f3f3;
+      border: 4px solid;
+      @apply border-gray-200 dark:border-gray-700;
       border-top: 4px solid #667eea;
       border-radius: 50%;
       animation: spin 1s linear infinite;
@@ -314,7 +329,6 @@ onMounted(() => {
 
     p {
       margin: 0;
-      color: #666;
       font-size: 14px;
     }
   }

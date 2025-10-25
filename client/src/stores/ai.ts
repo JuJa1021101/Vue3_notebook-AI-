@@ -133,7 +133,7 @@ export const useAIStore = defineStore('ai', {
             if (action === 'format') {
               // 去除开头的说明内容
               const startMatch = result.match(/[：:]\s*\n/);
-              if (startMatch) {
+              if (startMatch && startMatch.index !== undefined) {
                 result = result.substring(startMatch.index + 1).trim();
               }
 
@@ -154,7 +154,7 @@ export const useAIStore = defineStore('ai', {
             return result;
           } else {
             this.error = response.message || 'AI 处理失败';
-            throw new Error(this.error);
+            throw new Error(this.error || 'AI 处理失败');
           }
         }
       } catch (error: any) {

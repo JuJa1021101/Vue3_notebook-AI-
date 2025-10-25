@@ -14,10 +14,12 @@
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAIStore } from "@/stores/ai";
+import { useThemeStore } from "@/stores/theme";
 import AppTabBar from "@/components/common/AppTabBar.vue";
 
 const route = useRoute();
 const aiStore = useAIStore();
+const themeStore = useThemeStore();
 
 // 定义需要显示底部导航栏的页面
 const tabBarRoutes = ["Home", "Categories", "NoteCreate", "Search", "Profile"];
@@ -28,6 +30,9 @@ const shouldShowTabBar = computed(() => {
 });
 
 onMounted(async () => {
+  // 加载主题设置
+  themeStore.loadSettings();
+
   // 确保AI设置已加载（如果尚未加载）
   if (!aiStore.settings) {
     try {

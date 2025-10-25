@@ -1,19 +1,25 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto transition-colors"
+  >
     <!-- Header -->
-    <div class="bg-white px-4 py-4 border-b border-gray-100">
+    <div
+      class="bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 transition-colors"
+    >
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900">全部笔记</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          全部笔记
+        </h1>
         <div class="flex items-center space-x-2">
           <button
             @click="showFilterModal = true"
-            class="p-2 rounded-lg bg-gray-100"
+            class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 transition-colors"
           >
-            <i class="fas fa-filter text-gray-600"></i>
+            <i class="fas fa-filter text-gray-600 dark:text-gray-300"></i>
           </button>
         </div>
       </div>
-      <p class="text-sm text-gray-500 mt-1">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
         共 {{ filteredNotes.length }} 篇笔记
       </p>
     </div>
@@ -21,14 +27,16 @@
     <!-- Filter Bar -->
     <div
       v-if="activeFilters.length > 0"
-      class="bg-white px-4 py-2 border-b border-gray-100"
+      class="bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-100 dark:border-gray-700 transition-colors"
     >
       <div class="flex items-center space-x-2 overflow-x-auto">
-        <span class="text-sm text-gray-500 whitespace-nowrap">筛选条件:</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap"
+          >筛选条件:</span
+        >
         <div
           v-for="filter in activeFilters"
           :key="filter.key"
-          class="flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full whitespace-nowrap"
+          class="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full whitespace-nowrap"
         >
           {{ filter.label }}
           <button @click="removeFilter(filter.key)" class="ml-1">
@@ -37,7 +45,7 @@
         </div>
         <button
           @click="clearAllFilters"
-          class="text-xs text-gray-500 underline whitespace-nowrap"
+          class="text-xs text-gray-500 dark:text-gray-400 underline whitespace-nowrap"
         >
           清除全部
         </button>
@@ -64,12 +72,18 @@
       class="flex flex-col items-center justify-center h-64"
     >
       <div
-        class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4"
+        class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 transition-colors"
       >
-        <i class="fas fa-sticky-note text-2xl text-gray-400"></i>
+        <i
+          class="fas fa-sticky-note text-2xl text-gray-400 dark:text-gray-500"
+        ></i>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">暂无笔记</h3>
-      <p class="text-sm text-gray-500 mb-4">开始创建你的第一篇笔记吧</p>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        暂无笔记
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        开始创建你的第一篇笔记吧
+      </p>
       <button
         @click="$router.push('/main/notes/new')"
         class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
@@ -85,14 +99,16 @@
       @click="showFilterModal = false"
     >
       <div
-        class="bg-white rounded-2xl w-full max-w-md max-h-96 overflow-y-auto"
+        class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-96 overflow-y-auto transition-colors"
         @click.stop
       >
-        <div class="p-4 border-b border-gray-100">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-700">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">筛选笔记</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              筛选笔记
+            </h3>
             <button @click="showFilterModal = false">
-              <i class="fas fa-times text-gray-400"></i>
+              <i class="fas fa-times text-gray-400 dark:text-gray-500"></i>
             </button>
           </div>
         </div>
@@ -100,7 +116,7 @@
         <div class="p-4 space-y-4">
           <!-- Category Filter -->
           <div>
-            <h4 class="font-medium text-gray-900 mb-2">分类</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">分类</h4>
             <div class="space-y-2">
               <label
                 v-for="category in categories"
@@ -113,14 +129,18 @@
                   v-model="selectedCategories"
                   class="w-4 h-4 text-blue-600 border-gray-300 rounded"
                 />
-                <span class="text-sm text-gray-700">{{ category.name }}</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{
+                  category.name
+                }}</span>
               </label>
             </div>
           </div>
 
           <!-- Date Filter -->
           <div>
-            <h4 class="font-medium text-gray-900 mb-2">时间范围</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+              时间范围
+            </h4>
             <div class="space-y-2">
               <label
                 v-for="period in datePeriods"
@@ -133,14 +153,18 @@
                   v-model="selectedDatePeriod"
                   class="w-4 h-4 text-blue-600 border-gray-300"
                 />
-                <span class="text-sm text-gray-700">{{ period.label }}</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{
+                  period.label
+                }}</span>
               </label>
             </div>
           </div>
 
           <!-- Sort Options -->
           <div>
-            <h4 class="font-medium text-gray-900 mb-2">排序方式</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+              排序方式
+            </h4>
             <div class="space-y-2">
               <label
                 v-for="sort in sortOptions"
@@ -153,17 +177,19 @@
                   v-model="selectedSort"
                   class="w-4 h-4 text-blue-600 border-gray-300"
                 />
-                <span class="text-sm text-gray-700">{{ sort.label }}</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{
+                  sort.label
+                }}</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div class="p-4 border-t border-gray-100">
+        <div class="p-4 border-t border-gray-100 dark:border-gray-700">
           <div class="flex space-x-3">
             <button
               @click="resetFilters"
-              class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg"
+              class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg transition-colors"
             >
               重置
             </button>
@@ -192,15 +218,20 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       @click="showDeleteConfirm = false"
     >
-      <div class="bg-white rounded-xl p-6 w-full max-w-sm" @click.stop>
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm transition-colors"
+        @click.stop
+      >
         <div class="text-center mb-4">
           <div
-            class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+            class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-3"
           >
             <i class="fas fa-trash text-red-600 text-xl"></i>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">删除笔记</h3>
-          <p class="text-sm text-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            删除笔记
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300">
             确定要删除笔记"{{ noteToDelete?.title }}"吗？
           </p>
         </div>
@@ -208,7 +239,7 @@
           <button
             @click="showDeleteConfirm = false"
             :disabled="deleting"
-            class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg disabled:opacity-50"
+            class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg disabled:opacity-50 transition-colors"
           >
             取消
           </button>

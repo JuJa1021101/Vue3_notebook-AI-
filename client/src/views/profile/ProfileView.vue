@@ -1,5 +1,7 @@
 <template>
-  <div class="bg-gray-50 h-full overflow-y-auto">
+  <div
+    class="bg-gray-50 dark:bg-gray-900 h-full overflow-y-auto transition-colors"
+  >
     <!-- Profile Header -->
     <div class="gradient-bg px-4 py-8 text-white">
       <div class="flex items-center space-x-4 mb-6">
@@ -52,7 +54,7 @@
           v-for="action in quickActions"
           :key="action.name"
           @click="handleQuickAction(action.name)"
-          class="bg-white p-3 rounded-xl text-center shadow-sm cursor-pointer"
+          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm cursor-pointer transition-colors"
         >
           <div
             class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
@@ -60,7 +62,9 @@
           >
             <i :class="action.icon" :style="{ color: action.color }"></i>
           </div>
-          <span class="text-xs text-gray-600">{{ action.label }}</span>
+          <span class="text-xs text-gray-600 dark:text-gray-400">{{
+            action.label
+          }}</span>
         </div>
       </div>
     </div>
@@ -68,14 +72,17 @@
     <!-- Menu Items -->
     <div class="px-4">
       <div
-        class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors"
       >
         <div
           v-for="(item, index) in menuItems"
           :key="item.name"
           @click="handleMenuClick(item.name)"
           class="menu-item p-4 flex items-center justify-between cursor-pointer"
-          :class="{ 'border-b border-gray-100': index < menuItems.length - 1 }"
+          :class="{
+            'border-b border-gray-100 dark:border-gray-700':
+              index < menuItems.length - 1,
+          }"
         >
           <div class="flex items-center space-x-3">
             <div
@@ -85,8 +92,12 @@
               <i :class="item.icon" :style="{ color: item.color }"></i>
             </div>
             <div>
-              <h3 class="font-medium text-gray-900">{{ item.title }}</h3>
-              <p class="text-sm text-gray-500">{{ item.description }}</p>
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                {{ item.title }}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ item.description }}
+              </p>
             </div>
           </div>
           <div class="flex items-center space-x-2">
@@ -101,14 +112,16 @@
 
     <!-- Storage Info -->
     <div class="px-4 py-4">
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors"
+      >
         <div class="flex items-center justify-between mb-3">
-          <h3 class="font-medium text-gray-900">存储空间</h3>
-          <span class="text-sm text-gray-500"
+          <h3 class="font-medium text-gray-900 dark:text-white">存储空间</h3>
+          <span class="text-sm text-gray-500 dark:text-gray-400"
             >{{ storageInfo.used }}GB / {{ storageInfo.total }}GB</span
           >
         </div>
-        <div class="w-full h-2 bg-gray-200 rounded-full mb-3">
+        <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-3">
           <div
             class="h-full bg-blue-500 rounded-full"
             :style="{
@@ -118,22 +131,22 @@
         </div>
         <div class="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div class="text-sm font-medium text-gray-900">
+            <div class="text-sm font-medium text-gray-900 dark:text-white">
               {{ storageInfo.text }}GB
             </div>
-            <div class="text-xs text-gray-500">文本</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">文本</div>
           </div>
           <div>
-            <div class="text-sm font-medium text-gray-900">
+            <div class="text-sm font-medium text-gray-900 dark:text-white">
               {{ storageInfo.images }}GB
             </div>
-            <div class="text-xs text-gray-500">图片</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">图片</div>
           </div>
           <div>
-            <div class="text-sm font-medium text-gray-900">
+            <div class="text-sm font-medium text-gray-900 dark:text-white">
               {{ storageInfo.others }}GB
             </div>
-            <div class="text-xs text-gray-500">其他</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">其他</div>
           </div>
         </div>
       </div>

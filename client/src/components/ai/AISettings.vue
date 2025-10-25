@@ -1,23 +1,29 @@
 <template>
   <div class="ai-settings-modal" @click.self="close">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>AI 助手设置</h3>
-        <button class="close-btn" @click="close">
+    <div class="modal-content bg-white dark:bg-gray-800 transition-colors">
+      <div class="modal-header border-gray-200 dark:border-gray-700">
+        <h3 class="text-gray-900 dark:text-white">AI 助手设置</h3>
+        <button
+          class="close-btn text-gray-400 dark:text-gray-500"
+          @click="close"
+        >
           <i class="fas fa-times"></i>
         </button>
       </div>
 
       <div class="modal-body">
         <div v-if="loading" class="loading-state">
-          <div class="spinner"></div>
-          <p>加载设置中...</p>
+          <div class="spinner border-gray-200 dark:border-gray-700"></div>
+          <p class="text-gray-600 dark:text-gray-300">加载设置中...</p>
         </div>
 
         <div v-else>
           <div class="form-group">
-            <label>默认续写长度</label>
-            <select v-model="formData.default_length">
+            <label class="text-gray-900 dark:text-white">默认续写长度</label>
+            <select
+              v-model="formData.default_length"
+              class="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
+            >
               <option value="short">短（50-200字）</option>
               <option value="medium">中（200-500字）</option>
               <option value="long">长（500-800字）</option>
@@ -25,8 +31,11 @@
           </div>
 
           <div class="form-group">
-            <label>默认写作风格</label>
-            <select v-model="formData.default_style">
+            <label class="text-gray-900 dark:text-white">默认写作风格</label>
+            <select
+              v-model="formData.default_style"
+              class="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
+            >
               <option value="formal">正式</option>
               <option value="casual">轻松</option>
               <option value="professional">专业</option>
@@ -35,15 +44,18 @@
           </div>
 
           <div class="form-group">
-            <label>默认语言</label>
-            <select v-model="formData.default_language">
+            <label class="text-gray-900 dark:text-white">默认语言</label>
+            <select
+              v-model="formData.default_language"
+              class="bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white"
+            >
               <option value="zh">中文</option>
               <option value="en">English</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="checkbox-label">
+            <label class="checkbox-label text-gray-900 dark:text-white">
               <input
                 type="checkbox"
                 v-model="formData.stream_enabled"
@@ -56,8 +68,13 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="close">取消</button>
+      <div class="modal-footer border-gray-200 dark:border-gray-700">
+        <button
+          class="btn btn-secondary bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+          @click="close"
+        >
+          取消
+        </button>
         <button class="btn btn-primary" @click="save" :disabled="saving">
           {{ saving ? "保存中..." : "保存" }}
         </button>
@@ -180,7 +197,6 @@ onMounted(async () => {
   padding: 20px;
 
   .modal-content {
-    background: white;
     border-radius: 12px;
     width: 100%;
     max-width: 500px;
@@ -194,26 +210,23 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 20px;
-      border-bottom: 1px solid #e9ecef;
 
       h3 {
         margin: 0;
         font-size: 18px;
         font-weight: 600;
-        color: #333;
       }
 
       .close-btn {
         background: none;
         border: none;
         font-size: 20px;
-        color: #999;
         cursor: pointer;
         padding: 4px;
         transition: color 0.3s;
 
         &:hover {
-          color: #333;
+          @apply text-gray-900 dark:text-gray-100;
         }
       }
     }
@@ -234,7 +247,7 @@ onMounted(async () => {
         .spinner {
           width: 40px;
           height: 40px;
-          border: 4px solid #f3f3f3;
+          border: 4px solid;
           border-top: 4px solid #667eea;
           border-radius: 50%;
           animation: spin 1s linear infinite;
@@ -242,7 +255,6 @@ onMounted(async () => {
 
         p {
           margin: 0;
-          color: #666;
           font-size: 14px;
         }
       }
@@ -255,19 +267,16 @@ onMounted(async () => {
           margin-bottom: 8px;
           font-size: 14px;
           font-weight: 500;
-          color: #333;
         }
 
         select {
           width: 100%;
           padding: 10px 12px;
-          border: 1px solid #e9ecef;
+          border: 1px solid;
           border-radius: 8px;
           font-size: 14px;
-          color: #333;
-          background: white;
           cursor: pointer;
-          transition: border-color 0.3s;
+          transition: all 0.3s;
 
           &:focus {
             outline: none;
@@ -301,7 +310,6 @@ onMounted(async () => {
       justify-content: flex-end;
       gap: 12px;
       padding: 16px 20px;
-      border-top: 1px solid #e9ecef;
 
       .btn {
         padding: 10px 20px;
@@ -313,11 +321,8 @@ onMounted(async () => {
         transition: all 0.3s;
 
         &.btn-secondary {
-          background: #f8f9fa;
-          color: #666;
-
           &:hover {
-            background: #e9ecef;
+            @apply bg-gray-200 dark:bg-gray-600;
           }
         }
 
