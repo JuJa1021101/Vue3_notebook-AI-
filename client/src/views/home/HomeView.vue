@@ -25,7 +25,10 @@
     <!-- Quick Actions -->
     <div class="px-4 py-4">
       <div class="grid grid-cols-4 gap-3">
-        <div class="bg-white p-3 rounded-xl text-center shadow-sm">
+        <div
+          class="bg-white p-3 rounded-xl text-center shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+          @click="router.push('/main/notes/new')"
+        >
           <div
             class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2"
           >
@@ -123,7 +126,6 @@
           <p class="text-sm text-gray-600">
             确定要删除笔记"{{ noteToDelete?.title }}"吗？
           </p>
-          <p class="text-xs text-gray-500 mt-1">此操作无法撤销</p>
         </div>
         <div class="flex space-x-3">
           <button
@@ -276,9 +278,9 @@ onMounted(async () => {
   if (!aiStore.settings) {
     try {
       await aiStore.fetchSettings();
-      console.log('HomeView: AI设置加载成功:', aiStore.settings);
+      console.log("HomeView: AI设置加载成功:", aiStore.settings);
     } catch (error) {
-      console.error('HomeView: 加载AI设置失败:', error);
+      console.error("HomeView: 加载AI设置失败:", error);
     }
   }
 

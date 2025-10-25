@@ -123,7 +123,6 @@
             该分类下还有
             {{ categoryToDelete.note_count }} 篇笔记，删除后这些笔记将无法访问
           </p>
-          <p class="text-xs text-gray-500 mt-1">此操作无法撤销</p>
         </div>
         <div class="flex space-x-3">
           <button

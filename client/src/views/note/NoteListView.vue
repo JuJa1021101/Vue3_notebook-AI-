@@ -81,11 +81,11 @@
     <!-- Filter Modal -->
     <div
       v-if="showFilterModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center p-4 z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       @click="showFilterModal = false"
     >
       <div
-        class="bg-white rounded-t-2xl w-full max-w-md max-h-96 overflow-y-auto"
+        class="bg-white rounded-2xl w-full max-w-md max-h-96 overflow-y-auto"
         @click.stop
       >
         <div class="p-4 border-b border-gray-100">
@@ -203,7 +203,6 @@
           <p class="text-sm text-gray-600">
             确定要删除笔记"{{ noteToDelete?.title }}"吗？
           </p>
-          <p class="text-xs text-gray-500 mt-1">此操作无法撤销</p>
         </div>
         <div class="flex space-x-3">
           <button
