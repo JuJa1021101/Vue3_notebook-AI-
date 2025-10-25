@@ -5,27 +5,37 @@
       <router-view />
     </div>
 
-    <!-- 底部标签栏 -->
-    <AppTabBar />
+    <!-- 底部标签栏 - 仅在主要页面显示 -->
+    <AppTabBar v-if="shouldShowTabBar" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useAIStore } from '@/stores/ai'
+import { computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useAIStore } from "@/stores/ai";
 import AppTabBar from "@/components/common/AppTabBar.vue";
 
-const aiStore = useAIStore()
+const route = useRoute();
+const aiStore = useAIStore();
+
+// 定义需要显示底部导航栏的页面
+const tabBarRoutes = ["Home", "Categories", "NoteCreate", "Search", "Profile"];
+
+// 判断是否显示底部导航栏
+const shouldShowTabBar = computed(() => {
+  return tabBarRoutes.includes(route.name as string);
+});
 
 onMounted(async () => {
   // 确保AI设置已加载（如果尚未加载）
   if (!aiStore.settings) {
     try {
-      await aiStore.fetchSettings()
-      console.log('MainLayout: AI设置加载成功:', aiStore.settings)
+      await aiStore.fetchSettings();
+      console.log("MainLayout: AI设置加载成功:", aiStore.settings);
     } catch (error) {
-      console.error('MainLayout: 加载AI设置失败:', error)
+      console.error("MainLayout: 加载AI设置失败:", error);
     }
   }
-})
+});
 </script>
