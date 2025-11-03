@@ -405,6 +405,9 @@ const handleAvatarError = (event: Event) => {
 
 <style scoped>
 .gradient-bg {
-  background: linear-gradient(135deg, #ffe0b2 0%, #ffab91 100%);
+  background-image: url("/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 </style>

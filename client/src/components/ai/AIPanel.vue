@@ -175,7 +175,10 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #ffe0b2 0%, #ffab91 100%);
+    background-image: url("/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
 
     h3 {
