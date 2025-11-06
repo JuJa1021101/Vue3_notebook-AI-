@@ -146,15 +146,15 @@
       <!-- 功能按钮组 - 在上面，向上展开 -->
       <div class="flex flex-col-reverse items-center">
         <!-- AI 助手按钮 -->
-        <transition name="slide-up-4">
+        <transition name="slide-up-3">
           <button
             v-if="showFloatingButtons"
             @click="toggleAIPanel"
             class="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 mb-3"
             :class="
               aiStore.showPanel
-                ? 'bg-gradient-to-br from-purple-600 to-indigo-600'
-                : 'bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600'
+                ? 'bg-green-600'
+                : 'bg-green-500 hover:bg-green-600'
             "
             title="AI 助手"
           >
@@ -162,7 +162,7 @@
           </button>
         </transition>
         <!-- 附件按钮 -->
-        <transition name="slide-up-3">
+        <transition name="slide-up-2">
           <button
             v-if="showFloatingButtons"
             @click="insertAttachment"
@@ -173,7 +173,7 @@
           </button>
         </transition>
         <!-- 录音按钮 -->
-        <transition name="slide-up-2">
+        <transition name="slide-up-1">
           <button
             v-if="showFloatingButtons"
             @click="insertAudio"
@@ -181,17 +181,6 @@
             title="录音"
           >
             <i class="fas fa-microphone text-lg"></i>
-          </button>
-        </transition>
-        <!-- 图片按钮 -->
-        <transition name="slide-up-1">
-          <button
-            v-if="showFloatingButtons"
-            @click="insertImageFromFloat"
-            class="w-14 h-14 bg-green-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-all hover:scale-110 mb-3"
-            title="上传图片"
-          >
-            <i class="fas fa-image text-lg"></i>
           </button>
         </transition>
       </div>
@@ -311,6 +300,7 @@ const toolbarOptions = [
   [{ header: [1, 2, 3, false] }],
   [{ color: [] }, { background: [] }],
   [{ align: [] }],
+  ["image"], // 添加图片按钮
   ["clean"],
 ];
 
@@ -324,6 +314,92 @@ onMounted(() => {
 const onEditorReady = () => {
   // 编辑器准备就绪
   console.log("编辑器已准备就绪");
+
+  // 为工具栏按钮添加中文提示
+  setTimeout(() => {
+    addToolbarTooltips();
+    setupImageUploadHandler();
+  }, 100);
+};
+
+// 设置图片上传处理器
+const setupImageUploadHandler = () => {
+  const quill = quillEditor.value?.getQuill();
+  if (!quill) return;
+
+  // 获取工具栏中的图片按钮
+  const toolbar = quill.getModule("toolbar");
+  if (!toolbar) return;
+
+  // 重写图片按钮的点击事件
+  toolbar.addHandler("image", () => {
+    // 创建文件选择器
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (file) {
+        try {
+          // 上传图片到服务器，获取 URL
+          const imageUrl = await uploadImageFile(file);
+
+          // 获取当前光标位置
+          const range = quill.getSelection(true);
+
+          // 插入图片 URL 到编辑器
+          quill.insertEmbed(range.index, "image", imageUrl);
+
+          // 移动光标到图片后面
+          quill.setSelection(range.index + 1);
+        } catch (error) {
+          console.error("图片上传失败:", error);
+          // toast 已在 uploadImageFile 中处理
+        }
+      }
+    };
+  });
+};
+
+// 为工具栏按钮添加中文提示
+const addToolbarTooltips = () => {
+  // 按钮提示映射
+  const tooltips: Record<string, string> = {
+    ".ql-bold": "粗体 (Ctrl+B)",
+    ".ql-italic": "斜体 (Ctrl+I)",
+    ".ql-underline": "下划线 (Ctrl+U)",
+    '.ql-list[value="ordered"]': "有序列表",
+    '.ql-list[value="bullet"]': "无序列表",
+    ".ql-blockquote": "引用",
+    ".ql-code-block": "代码块",
+    ".ql-image": "上传图片",
+    ".ql-clean": "清除格式",
+  };
+
+  // 为按钮添加提示
+  Object.entries(tooltips).forEach(([selector, title]) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.setAttribute("title", title);
+    }
+  });
+
+  // 为下拉选择器添加提示
+  const pickers = [
+    { selector: ".ql-header .ql-picker-label", title: "标题样式" },
+    { selector: ".ql-color .ql-picker-label", title: "文字颜色" },
+    { selector: ".ql-background .ql-picker-label", title: "背景颜色" },
+    { selector: ".ql-align .ql-picker-label", title: "对齐方式" },
+  ];
+
+  pickers.forEach(({ selector, title }) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.setAttribute("title", title);
+    }
+  });
 };
 
 // 加载分类列表
@@ -393,33 +469,6 @@ const addTag = () => {
 
 const removeTag = (index: number) => {
   noteForm.value.tags.splice(index, 1);
-};
-
-// 从浮动按钮插入图片
-const insertImageFromFloat = async () => {
-  const input = document.createElement("input");
-  input.setAttribute("type", "file");
-  input.setAttribute("accept", "image/*");
-  input.click();
-
-  input.onchange = async () => {
-    const file = input.files?.[0];
-    if (file) {
-      try {
-        // 上传图片到服务器，获取 URL
-        const imageUrl = await uploadImageFile(file);
-
-        // 插入图片 URL 到编辑器
-        const quill = quillEditor.value.getQuill();
-        const range = quill.getSelection(true);
-        quill.insertEmbed(range.index, "image", imageUrl);
-        quill.setSelection(range.index + 1);
-      } catch (error) {
-        console.error("图片上传失败:", error);
-        // toast 已在 uploadImageFile 中处理
-      }
-    }
-  };
 };
 
 const insertAudio = () => {
@@ -770,12 +819,67 @@ const regenerateAI = async () => {
   font-size: 16px;
   height: 100%;
   min-height: 300px;
+  border: none !important;
+}
+
+/* 工具栏吸顶效果 */
+.ql-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 暗色模式下的工具栏 */
+.dark .ql-toolbar {
+  background-color: #1f2937;
+  border-color: #374151 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 工具栏按钮悬浮效果 */
+.ql-toolbar button {
+  transition: all 0.2s ease;
+}
+
+.ql-toolbar button:hover {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.dark .ql-toolbar button:hover {
+  background-color: #374151;
+}
+
+/* 工具栏按钮激活状态 */
+.ql-toolbar button.ql-active {
+  background-color: #e5e7eb;
+  border-radius: 4px;
+}
+
+.dark .ql-toolbar button.ql-active {
+  background-color: #4b5563;
+}
+
+/* 工具栏下拉选择器悬浮效果 */
+.ql-toolbar .ql-picker-label:hover {
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.dark .ql-toolbar .ql-picker-label:hover {
+  background-color: #374151;
 }
 
 .ql-editor {
-  min-height: 300px;
+  min-height: calc(100vh - 350px);
   padding: 20px;
-  padding-bottom: 40px;
+  padding-bottom: 100px;
+  border: none !important;
 }
 
 .ql-editor.ql-blank::before {
@@ -855,7 +959,7 @@ const regenerateAI = async () => {
 }
 
 /* 浮动按钮动画 - 从眼睛按钮位置向上展开 */
-/* 第一个按钮（图片） */
+/* 第一个按钮（录音） */
 .slide-up-1-enter-active {
   transition: all 0.3s ease;
 }
@@ -874,7 +978,7 @@ const regenerateAI = async () => {
   transform: translateY(68px) scale(0.3);
 }
 
-/* 第二个按钮（录音） */
+/* 第二个按钮（附件） */
 .slide-up-2-enter-active {
   transition: all 0.3s ease 0.05s;
 }
@@ -893,7 +997,7 @@ const regenerateAI = async () => {
   transform: translateY(68px) scale(0.3);
 }
 
-/* 第三个按钮（附件） */
+/* 第三个按钮（AI 助手） */
 .slide-up-3-enter-active {
   transition: all 0.3s ease 0.1s;
 }
@@ -908,25 +1012,6 @@ const regenerateAI = async () => {
 }
 
 .slide-up-3-leave-to {
-  opacity: 0;
-  transform: translateY(68px) scale(0.3);
-}
-
-/* 第四个按钮（AI 助手） */
-.slide-up-4-enter-active {
-  transition: all 0.3s ease 0.15s;
-}
-
-.slide-up-4-leave-active {
-  transition: all 0.2s ease;
-}
-
-.slide-up-4-enter-from {
-  opacity: 0;
-  transform: translateY(68px) scale(0.3);
-}
-
-.slide-up-4-leave-to {
   opacity: 0;
   transform: translateY(68px) scale(0.3);
 }
