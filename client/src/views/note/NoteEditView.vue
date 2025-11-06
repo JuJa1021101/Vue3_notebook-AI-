@@ -233,13 +233,9 @@ import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getCategories } from "@/api/category";
 import type { Category } from "@/api/category";
 import { createNote, getNoteById, updateNote } from "@/api/note";
-import {
-  uploadAttachment,
-  deleteFile,
-  getNoteAttachments,
-  updateFilesNoteId,
-} from "@/api/file";
+import { deleteFile, getNoteAttachments, updateFilesNoteId } from "@/api/file";
 import { toast } from "@/utils/toast";
+import { uploadImageFile, uploadAttachmentFile } from "@/utils/fileUpload";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import AttachmentCard from "@/components/note/AttachmentCard.vue";
 import AttachmentPreview from "@/components/note/AttachmentPreview.vue";
@@ -399,47 +395,6 @@ const removeTag = (index: number) => {
   noteForm.value.tags.splice(index, 1);
 };
 
-// 压缩图片
-const compressImage = (
-  file: File,
-  maxWidth = 800,
-  quality = 0.7
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        // 限制最大宽度
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
-          resolve(compressedDataUrl);
-        } else {
-          reject(new Error("无法创建 canvas context"));
-        }
-      };
-      img.onerror = () => reject(new Error("图片加载失败"));
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error("文件读取失败"));
-    reader.readAsDataURL(file);
-  });
-};
-
 // 从浮动按钮插入图片
 const insertImageFromFloat = async () => {
   const input = document.createElement("input");
@@ -450,32 +405,18 @@ const insertImageFromFloat = async () => {
   input.onchange = async () => {
     const file = input.files?.[0];
     if (file) {
-      // 检查文件大小（限制为 10MB）
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast.error("图片大小不能超过 10MB，请选择较小的图片");
-        return;
-      }
-
       try {
-        // 压缩图片
-        const compressedDataUrl = await compressImage(file, 800, 0.7);
+        // 上传图片到服务器，获取 URL
+        const imageUrl = await uploadImageFile(file);
 
-        // 检查压缩后的大小
-        const compressedSize = compressedDataUrl.length * 0.75; // 估算字节大小
-        if (compressedSize > 2 * 1024 * 1024) {
-          // 2MB
-          toast.error("图片压缩后仍然过大，请选择更小的图片或降低分辨率");
-          return;
-        }
-
+        // 插入图片 URL 到编辑器
         const quill = quillEditor.value.getQuill();
         const range = quill.getSelection(true);
-        quill.insertEmbed(range.index, "image", compressedDataUrl);
+        quill.insertEmbed(range.index, "image", imageUrl);
         quill.setSelection(range.index + 1);
       } catch (error) {
-        console.error("图片处理失败:", error);
-        toast.error("图片处理失败，请重试");
+        console.error("图片上传失败:", error);
+        // toast 已在 uploadImageFile 中处理
       }
     }
   };
@@ -495,35 +436,18 @@ const insertAttachment = async () => {
   input.onchange = async () => {
     const file = input.files?.[0];
     if (file) {
-      // 检查文件大小（限制为 50MB）
-      const maxSize = 50 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast.error("文件大小不能超过 50MB");
-        return;
-      }
-
       try {
-        toast.info("正在上传附件...");
-
-        // 上传附件到服务器（OSS）
+        // 上传附件到服务器/OSS
         const noteId = isEdit.value
           ? parseInt(route.params.id as string)
           : undefined;
-        const response = await uploadAttachment(file, noteId);
+        const fileData = await uploadAttachmentFile(file, noteId);
 
-        if (response.data.success) {
-          const fileData = response.data.data;
-
-          // 添加到附件列表
-          attachments.value.push(fileData);
-
-          toast.success("附件上传成功");
-        } else {
-          toast.error(response.data.message || "附件上传失败");
-        }
+        // 添加到附件列表
+        attachments.value.push(fileData);
       } catch (error: any) {
         console.error("附件上传失败:", error);
-        toast.error(error.response?.data?.message || "附件上传失败，请重试");
+        // toast 已在 uploadAttachmentFile 中处理
       }
     }
   };
