@@ -57,70 +57,186 @@ export interface AIStats {
     hourly: number;
     daily: number;
   };
+  limitInfo?: {
+    tier: string;
+    description: string;
+    isUnlimited: boolean;
+    hourly: {
+      used: number;
+      limit: number;
+      remaining: number;
+      percentage: number;
+      warningLevel: 'safe' | 'warning' | 'danger';
+      display: string;
+    };
+    daily: {
+      used: number;
+      limit: number;
+      remaining: number;
+      percentage: number;
+      warningLevel: 'safe' | 'warning' | 'danger';
+      display: string;
+    };
+    maxTokens: number;
+  };
+  userTier?: string;
+  isUnlimited?: boolean;
 }
 
 /**
- * 创建流式请求
+ * 流式响应统计信息
  */
-const createStreamRequest = async (url: string, data: AIRequest, onChunk?: (chunk: string) => void): Promise<void> => {
+export interface StreamStats {
+  tokensUsed?: number;
+  processingTime?: number;
+}
+
+/**
+ * 创建流式请求（带重连和错误处理）
+ */
+const createStreamRequest = async (
+  url: string,
+  data: AIRequest,
+  onChunk?: (chunk: string) => void,
+  onStats?: (stats: StreamStats) => void
+): Promise<void> => {
   const token = localStorage.getItem('token');
   const baseURL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3000';
 
-  try {
-    const response = await fetch(`${baseURL}${url}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
+  // 重连配置
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1秒
+  const REQUEST_TIMEOUT = 90000; // 90秒
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  let retryCount = 0;
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
+  const attemptRequest = async (): Promise<void> => {
+    let timeoutId: number | undefined;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
-    if (!reader) {
-      throw new Error('无法获取响应流');
-    }
+    try {
+      // 创建超时控制
+      const controller = new AbortController();
+      timeoutId = window.setTimeout(() => {
+        controller.abort();
+      }, REQUEST_TIMEOUT);
 
-    while (true) {
-      const { done, value } = await reader.read();
+      const response = await fetch(`${baseURL}${url}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
 
-      if (done) {
-        break;
+      // 清除超时
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
       }
 
-      const text = decoder.decode(value, { stream: true });
-      const lines = text.split('\n');
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `HTTP ${response.status}`;
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const jsonData = JSON.parse(line.slice(6));
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
 
-            if (jsonData.done) {
-              if (jsonData.error) {
-                throw new Error(jsonData.error);
+        throw new Error(errorMessage);
+      }
+
+      reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('无法获取响应流');
+      }
+
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        const text = decoder.decode(value, { stream: true });
+        buffer += text;
+
+        // 按行处理数据
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // 保留最后一个不完整的行
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const jsonData = JSON.parse(line.slice(6));
+
+              if (jsonData.done) {
+                if (jsonData.error) {
+                  throw new Error(jsonData.error);
+                }
+
+                // 发送统计信息
+                if (onStats && (jsonData.tokensUsed || jsonData.processingTime)) {
+                  onStats({
+                    tokensUsed: jsonData.tokensUsed,
+                    processingTime: jsonData.processingTime,
+                  });
+                }
+
+                return;
+              } else if (jsonData.chunk && onChunk) {
+                onChunk(jsonData.chunk);
               }
-              return;
-            } else if (jsonData.chunk && onChunk) {
-              onChunk(jsonData.chunk);
+            } catch (e) {
+              // 忽略解析错误，但记录日志
+              console.debug('解析数据行失败:', line, e);
             }
-          } catch (e) {
-            // 忽略解析错误
-            console.debug('解析数据行失败:', line);
           }
         }
       }
+    } catch (error: any) {
+      // 清理资源
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      if (reader) {
+        try {
+          await reader.cancel();
+        } catch (e) {
+          console.debug('取消 reader 失败:', e);
+        }
+      }
+
+      // 判断是否需要重连
+      const isNetworkError = error.name === 'AbortError' ||
+        error.message.includes('network') ||
+        error.message.includes('timeout') ||
+        error.message.includes('fetch');
+
+      if (isNetworkError && retryCount < MAX_RETRIES) {
+        retryCount++;
+        console.warn(`流式请求失败，${RETRY_DELAY}ms 后进行第 ${retryCount} 次重试...`);
+
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retryCount));
+        return attemptRequest();
+      }
+
+      // 不重连或重连失败，抛出错误
+      console.error('流式请求失败:', error);
+      throw new Error(error.message || '流式请求失败');
     }
-  } catch (error: any) {
-    console.error('流式请求失败:', error);
-    throw error;
-  }
+  };
+
+  return attemptRequest();
 };
 
 /**
@@ -130,9 +246,9 @@ export const aiAPI = {
   /**
    * 智能续写
    */
-  continue: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  continue: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/continue', data, onChunk);
+      await createStreamRequest('/api/ai/continue', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/continue', data);
@@ -142,9 +258,9 @@ export const aiAPI = {
   /**
    * 格式优化
    */
-  format: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  format: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/format', data, onChunk);
+      await createStreamRequest('/api/ai/format', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/format', data);
@@ -154,9 +270,9 @@ export const aiAPI = {
   /**
    * 排版美化
    */
-  beautify: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  beautify: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/beautify', data, onChunk);
+      await createStreamRequest('/api/ai/beautify', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/beautify', data);
@@ -166,9 +282,9 @@ export const aiAPI = {
   /**
    * 内容润色
    */
-  polish: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  polish: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/polish', data, onChunk);
+      await createStreamRequest('/api/ai/polish', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/polish', data);
@@ -178,9 +294,9 @@ export const aiAPI = {
   /**
    * 生成摘要
    */
-  summarize: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  summarize: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/summarize', data, onChunk);
+      await createStreamRequest('/api/ai/summarize', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/summarize', data);
@@ -190,9 +306,9 @@ export const aiAPI = {
   /**
    * 内容扩写
    */
-  expand: async (data: AIRequest, onChunk?: (chunk: string) => void): Promise<AIResponse> => {
+  expand: async (data: AIRequest, onChunk?: (chunk: string) => void, onStats?: (stats: StreamStats) => void): Promise<AIResponse> => {
     if (data.options?.streamEnabled && onChunk) {
-      await createStreamRequest('/api/ai/expand', data, onChunk);
+      await createStreamRequest('/api/ai/expand', data, onChunk, onStats);
       return { success: true };
     }
     const response = await request.post('/ai/expand', data);

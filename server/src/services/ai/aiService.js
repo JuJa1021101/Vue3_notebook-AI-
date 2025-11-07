@@ -5,6 +5,7 @@
 const QwenService = require('./qwenService');
 const { buildPrompt } = require('../../utils/ai/promptTemplates');
 const { sequelize } = require('../../config/database');
+const { getUserLimits, isLimitExceeded, formatLimitInfo } = require('../../config/aiLimits');
 
 class AIService {
   constructor() {
@@ -61,11 +62,11 @@ class AIService {
 
     try {
       // 1. 检查限流
-      const canProceed = await this.checkRateLimit(userId);
-      if (!canProceed) {
+      const rateLimitResult = await this.checkRateLimit(userId);
+      if (!rateLimitResult.canProceed) {
         return {
           success: false,
-          message: '请求过于频繁，请稍后再试'
+          message: rateLimitResult.message || '已达到使用限制，请升级会员以继续使用 AI 功能'
         };
       }
 
@@ -173,12 +174,12 @@ class AIService {
 
     try {
       // 1. 检查限流
-      const canProceed = await this.checkRateLimit(userId);
-      if (!canProceed) {
+      const rateLimitResult = await this.checkRateLimit(userId);
+      if (!rateLimitResult.canProceed) {
         ctx.status = 429;
         ctx.body = {
           success: false,
-          message: '请求过于频繁，请稍后再试'
+          message: rateLimitResult.message || '已达到使用限制，请升级会员以继续使用 AI 功能'
         };
         return;
       }
@@ -224,6 +225,14 @@ class AIService {
       if (result.success) {
         tokensUsed = result.tokensUsed || 0;
 
+        console.log('✅ 流式处理完成:', {
+          tokensUsed,
+          promptTokens: result.promptTokens,
+          completionTokens: result.completionTokens,
+          processingTime: processingTime + 'ms',
+          contentLength: fullContent.length
+        });
+
         // 发送完成信号
         ctx.res.write(`data: ${JSON.stringify({
           done: true,
@@ -260,6 +269,8 @@ class AIService {
           });
         }
       } else {
+        console.error('❌ 流式处理失败:', result.error);
+
         // 发送错误信号
         ctx.res.write(`data: ${JSON.stringify({
           done: true,
@@ -285,17 +296,24 @@ class AIService {
 
       ctx.res.end();
     } catch (error) {
-      console.error('AIService.processAIStream error:', error);
+      console.error('❌ AIService.processAIStream error:', {
+        message: error.message,
+        stack: error.stack
+      });
 
       const endTime = Date.now();
       const processingTime = endTime - startTime;
 
-      // 发送错误信号
-      ctx.res.write(`data: ${JSON.stringify({
-        done: true,
-        error: error.message
-      })}\n\n`);
-      ctx.res.end();
+      try {
+        // 发送错误信号
+        ctx.res.write(`data: ${JSON.stringify({
+          done: true,
+          error: error.message || '服务器错误'
+        })}\n\n`);
+        ctx.res.end();
+      } catch (writeError) {
+        console.error('❌ 发送错误信号失败:', writeError.message);
+      }
 
       // 记录失败日志
       await this.logUsage({
@@ -317,11 +335,21 @@ class AIService {
 
   /**
    * 检查限流
+   * @returns {Object} { canProceed: boolean, message: string }
    */
   async checkRateLimit(userId) {
     try {
       const today = new Date().toISOString().split('T')[0];
       const currentHour = new Date().getHours();
+
+      // 获取用户信息和限制配置
+      const userInfo = await this.getUserInfo(userId);
+      const limits = getUserLimits(userInfo);
+
+      // 如果是无限制用户，直接通过
+      if (limits.isUnlimited) {
+        return { canProceed: true };
+      }
 
       // 查询今天的限流记录
       const rows = await sequelize.query(
@@ -340,14 +368,10 @@ class AIService {
             replacements: [userId, today]
           }
         );
-        return true;
+        return { canProceed: true };
       }
 
       const record = rows[0];
-
-      // 检查限制
-      const hourlyLimit = parseInt(process.env.AI_RATE_LIMIT_PER_HOUR || '50');
-      const dailyLimit = parseInt(process.env.AI_RATE_LIMIT_PER_DAY || '200');
 
       // 检查小时限制
       const lastRequestTime = new Date(record.last_request_at);
@@ -355,22 +379,41 @@ class AIService {
 
       if (lastRequestHour !== currentHour) {
         // 新的小时，重置小时计数
+        const newDailyCount = record.daily_count + 1;
+
+        // 检查每日限制
+        if (isLimitExceeded(newDailyCount, limits.daily)) {
+          console.warn(`⚠️ 用户 ${userId} 超过每日限制: ${newDailyCount}/${limits.daily}`);
+          return {
+            canProceed: false,
+            message: `今日使用次数已达上限（${limits.daily}次），请明天再试或升级会员`
+          };
+        }
+
         await sequelize.query(
-          'UPDATE ai_rate_limits SET hourly_count = 1, daily_count = daily_count + 1 WHERE id = ?',
+          'UPDATE ai_rate_limits SET hourly_count = 1, daily_count = ? WHERE id = ?',
           {
-            replacements: [record.id]
+            replacements: [newDailyCount, record.id]
           }
         );
-        return record.daily_count < dailyLimit;
+        return { canProceed: true };
       }
 
-      // 同一小时内
-      if (record.hourly_count >= hourlyLimit) {
-        return false;
+      // 同一小时内，检查小时和每日限制
+      if (isLimitExceeded(record.hourly_count, limits.hourly)) {
+        console.warn(`⚠️ 用户 ${userId} 超过小时限制: ${record.hourly_count}/${limits.hourly}`);
+        return {
+          canProceed: false,
+          message: `本小时使用次数已达上限（${limits.hourly}次），请稍后再试或升级会员`
+        };
       }
 
-      if (record.daily_count >= dailyLimit) {
-        return false;
+      if (isLimitExceeded(record.daily_count, limits.daily)) {
+        console.warn(`⚠️ 用户 ${userId} 超过每日限制: ${record.daily_count}/${limits.daily}`);
+        return {
+          canProceed: false,
+          message: `今日使用次数已达上限（${limits.daily}次），请明天再试或升级会员`
+        };
       }
 
       // 更新计数
@@ -381,11 +424,53 @@ class AIService {
         }
       );
 
-      return true;
+      return { canProceed: true };
     } catch (error) {
       console.error('checkRateLimit error:', error);
       // 出错时允许请求（避免阻塞用户）
-      return true;
+      return { canProceed: true };
+    }
+  }
+
+  /**
+   * 获取用户信息（包括等级和订阅状态）
+   */
+  async getUserInfo(userId) {
+    try {
+      const rows = await sequelize.query(
+        'SELECT id, tier, is_subscribed, subscription_expiry FROM users WHERE id = ?',
+        {
+          replacements: [userId],
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+
+      if (rows && rows.length > 0) {
+        const user = rows[0];
+        return {
+          id: user.id,
+          tier: user.tier || 'free',
+          isSubscribed: Boolean(user.is_subscribed),
+          subscriptionExpiry: user.subscription_expiry
+        };
+      }
+
+      // 默认返回免费用户
+      return {
+        id: userId,
+        tier: 'free',
+        isSubscribed: false,
+        subscriptionExpiry: null
+      };
+    } catch (error) {
+      console.error('getUserInfo error:', error);
+      // 出错时返回免费用户配置
+      return {
+        id: userId,
+        tier: 'free',
+        isSubscribed: false,
+        subscriptionExpiry: null
+      };
     }
   }
 

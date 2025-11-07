@@ -18,6 +18,10 @@ interface AIState {
   showPreview: boolean;
   originalContent: string;
   processedContent: string;
+  currentTokensUsed: number;
+  currentProcessingTime: number;
+  showUpgradePrompt: boolean;
+  upgradePromptMessage: string;
 }
 
 export const useAIStore = defineStore('ai', {
@@ -32,6 +36,10 @@ export const useAIStore = defineStore('ai', {
     showPreview: false,
     originalContent: '',
     processedContent: '',
+    currentTokensUsed: 0,
+    currentProcessingTime: 0,
+    showUpgradePrompt: false,
+    upgradePromptMessage: '',
   }),
 
   getters: {
@@ -110,12 +118,22 @@ export const useAIStore = defineStore('ai', {
       this.originalContent = content;
 
       try {
+        // 请求前检查配额
+        if (!this.canUseAI) {
+          const message = '已达到使用限制，请升级会员以继续使用 AI 功能';
+          this.error = message;
+          throw new Error(message);
+        }
+
         // 检查是否启用流式输出
         const streamEnabled = this.settings?.stream_enabled || false;
 
         if (streamEnabled) {
           // 使用流式输出
-          return await this.processAIStream(action, content, options);
+          const result = await this.processAIStream(action, content, options);
+          // 请求成功后立即更新统计
+          await this.fetchStats();
+          return result;
         } else {
           // 使用普通输出
           const apiMethod = aiAPI[action];
@@ -151,6 +169,10 @@ export const useAIStore = defineStore('ai', {
             this.result = result;
             this.processedContent = result;
             this.showPreview = true;
+
+            // 请求成功后立即更新统计
+            await this.fetchStats();
+
             return result;
           } else {
             this.error = response.message || 'AI 处理失败';
@@ -159,6 +181,14 @@ export const useAIStore = defineStore('ai', {
         }
       } catch (error: any) {
         this.error = error.message || '网络错误';
+
+        // 如果是限流错误，显示升级提示并更新统计
+        if (error.message.includes('限制') || error.message.includes('频繁') || error.message.includes('升级')) {
+          await this.fetchStats();
+          this.showUpgradePrompt = true;
+          this.upgradePromptMessage = error.message;
+        }
+
         throw error;
       } finally {
         this.isProcessing = false;
@@ -173,6 +203,10 @@ export const useAIStore = defineStore('ai', {
         const apiMethod = aiAPI[action];
         let fullResult = '';
 
+        // 重置统计信息
+        this.currentTokensUsed = 0;
+        this.currentProcessingTime = 0;
+
         // 调用流式 API
         apiMethod({
           content,
@@ -183,7 +217,15 @@ export const useAIStore = defineStore('ai', {
           this.result = fullResult;
           this.processedContent = fullResult;
           this.showPreview = true;
-        }).then(() => {
+        }, (stats) => {
+          // 接收统计信息
+          if (stats.tokensUsed !== undefined) {
+            this.currentTokensUsed = stats.tokensUsed;
+          }
+          if (stats.processingTime !== undefined) {
+            this.currentProcessingTime = stats.processingTime;
+          }
+        }).then(async () => {
           // 流式输出完成
           let result = fullResult;
 
@@ -228,9 +270,19 @@ export const useAIStore = defineStore('ai', {
 
           this.result = result;
           this.processedContent = result;
+
+          // 流式请求完成后立即更新统计
+          await this.fetchStats();
+
           resolve(result);
-        }).catch((error: any) => {
+        }).catch(async (error: any) => {
           this.error = error.message || '流式输出失败';
+
+          // 即使失败也更新统计
+          if (error.message.includes('限制') || error.message.includes('频繁')) {
+            await this.fetchStats();
+          }
+
           reject(error);
         });
       });
@@ -347,6 +399,14 @@ export const useAIStore = defineStore('ai', {
     },
 
     /**
+     * 关闭升级提示
+     */
+    closeUpgradePrompt() {
+      this.showUpgradePrompt = false;
+      this.upgradePromptMessage = '';
+    },
+
+    /**
      * 重置状态
      */
     reset() {
@@ -357,6 +417,10 @@ export const useAIStore = defineStore('ai', {
       this.showPreview = false;
       this.originalContent = '';
       this.processedContent = '';
+      this.currentTokensUsed = 0;
+      this.currentProcessingTime = 0;
+      this.showUpgradePrompt = false;
+      this.upgradePromptMessage = '';
     },
   },
 });

@@ -139,9 +139,18 @@ class QwenService {
   async streamComplete(prompt, options = {}, onChunk) {
     const startTime = Date.now();
     let fullContent = '';
-    let tokensUsed = 0;
+    let promptTokens = 0;
+    let completionTokens = 0;
+    let totalTokens = 0;
 
     try {
+      console.log('🚀 开始流式 AI 请求:', {
+        model: options.model || this.model,
+        promptLength: prompt.length,
+        maxTokens: options.maxTokens || 4096,
+        timeout: this.timeout
+      });
+
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
@@ -155,7 +164,10 @@ class QwenService {
           max_tokens: options.maxTokens || 4096,
           temperature: options.temperature || 0.7,
           top_p: options.topP || 0.8,
-          stream: true
+          stream: true,
+          stream_options: {
+            include_usage: true  // 请求包含 token 使用信息
+          }
         },
         {
           headers: {
@@ -169,48 +181,100 @@ class QwenService {
 
       // 处理流式响应
       return new Promise((resolve, reject) => {
+        let buffer = '';
+        let hasError = false;
+
         response.data.on('data', (chunk) => {
-          const lines = chunk.toString().split('\n');
+          try {
+            buffer += chunk.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // 保留最后一个不完整的行
 
-          for (const line of lines) {
-            if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const content = data.choices?.[0]?.delta?.content;
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6).trim();
 
-                if (content) {
-                  fullContent += content;
-                  if (onChunk) {
-                    onChunk(content);
+                // 检查是否是结束标记
+                if (dataStr === '[DONE]') {
+                  continue;
+                }
+
+                try {
+                  const data = JSON.parse(dataStr);
+
+                  // 提取内容
+                  const content = data.choices?.[0]?.delta?.content;
+                  if (content) {
+                    fullContent += content;
+                    if (onChunk) {
+                      onChunk(content);
+                    }
                   }
-                }
 
-                // 获取 token 使用信息（如果有）
-                if (data.usage) {
-                  tokensUsed = data.usage.total_tokens;
+                  // 提取 token 使用信息
+                  if (data.usage) {
+                    promptTokens = data.usage.prompt_tokens || 0;
+                    completionTokens = data.usage.completion_tokens || 0;
+                    totalTokens = data.usage.total_tokens || 0;
+                  }
+                } catch (parseError) {
+                  console.debug('解析数据行失败:', dataStr, parseError.message);
                 }
-              } catch (e) {
-                // 忽略解析错误
               }
             }
+          } catch (error) {
+            console.error('处理数据块失败:', error.message);
           }
         });
 
         response.data.on('end', () => {
+          if (hasError) return;
+
           const endTime = Date.now();
           const processingTime = endTime - startTime;
+
+          // 如果没有获取到 token 信息，进行估算
+          if (totalTokens === 0) {
+            // 简单估算：中文约 1.5 字符/token，英文约 4 字符/token
+            const estimatedPromptTokens = Math.ceil(prompt.length / 2);
+            const estimatedCompletionTokens = Math.ceil(fullContent.length / 2);
+            promptTokens = estimatedPromptTokens;
+            completionTokens = estimatedCompletionTokens;
+            totalTokens = estimatedPromptTokens + estimatedCompletionTokens;
+            console.warn('⚠️ 未获取到精确 token 信息，使用估算值:', {
+              promptTokens,
+              completionTokens,
+              totalTokens
+            });
+          }
+
+          console.log('✅ 流式 AI 请求成功:', {
+            processingTime: processingTime + 'ms',
+            promptTokens,
+            completionTokens,
+            totalTokens,
+            resultLength: fullContent.length
+          });
 
           resolve({
             success: true,
             result: fullContent,
-            tokensUsed,
+            tokensUsed: totalTokens,
+            promptTokens,
+            completionTokens,
             processingTime
           });
         });
 
         response.data.on('error', (error) => {
+          hasError = true;
           const endTime = Date.now();
           const processingTime = endTime - startTime;
+
+          console.error('❌ 流式响应错误:', {
+            message: error.message,
+            processingTime: processingTime + 'ms'
+          });
 
           reject({
             success: false,
@@ -224,12 +288,35 @@ class QwenService {
       const endTime = Date.now();
       const processingTime = endTime - startTime;
 
-      console.error('QwenService.streamComplete error:', error.message);
+      console.error('❌ QwenService.streamComplete error:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        processingTime: processingTime + 'ms'
+      });
+
+      // 处理不同类型的错误
+      let errorMessage = error.message;
+      let errorCode = 'UNKNOWN_ERROR';
+
+      if (error.response) {
+        errorMessage = error.response.data?.error?.message || error.response.statusText;
+        errorCode = error.response.status === 401 ? 'UNAUTHORIZED' :
+          error.response.status === 429 ? 'RATE_LIMIT_EXCEEDED' :
+            error.response.status === 400 ? 'BAD_REQUEST' :
+              'API_ERROR';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = `请求超时（${this.timeout}ms），请稍后重试`;
+        errorCode = 'TIMEOUT';
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        errorMessage = '网络连接失败，请检查网络设置';
+        errorCode = 'NETWORK_ERROR';
+      }
 
       return {
         success: false,
-        error: error.message,
-        errorCode: 'STREAM_INIT_ERROR',
+        error: errorMessage,
+        errorCode,
         processingTime
       };
     }

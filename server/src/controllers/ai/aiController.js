@@ -4,6 +4,7 @@
 
 const AIService = require('../../services/ai/aiService');
 const { sequelize } = require('../../config/database');
+const { getUserLimits, formatLimitInfo } = require('../../config/aiLimits');
 
 const aiService = new AIService();
 
@@ -471,6 +472,10 @@ class AIController {
       );
       const monthStats = monthStatsResult[0] || { total_requests: 0, total_tokens: 0, total_cost: 0 };
 
+      // 获取用户信息和限制配置
+      const userInfo = await aiService.getUserInfo(userId);
+      const limits = getUserLimits(userInfo);
+
       // 获取限流信息
       const today = new Date().toISOString().split('T')[0];
       const rateLimitResult = await sequelize.query(
@@ -482,6 +487,9 @@ class AIController {
       );
       const rateLimit = rateLimitResult.length > 0 ? rateLimitResult[0] : { hourly_count: 0, daily_count: 0 };
 
+      // 格式化限制信息
+      const limitInfo = formatLimitInfo(limits, rateLimit);
+
       ctx.body = {
         success: true,
         data: {
@@ -489,9 +497,12 @@ class AIController {
           month: monthStats,
           rateLimit: rateLimit,
           limits: {
-            hourly: parseInt(process.env.AI_RATE_LIMIT_PER_HOUR || '50'),
-            daily: parseInt(process.env.AI_RATE_LIMIT_PER_DAY || '200')
-          }
+            hourly: limits.hourly,
+            daily: limits.daily
+          },
+          limitInfo: limitInfo, // 新增：详细的限制信息
+          userTier: limits.tier, // 新增：用户等级
+          isUnlimited: limits.isUnlimited // 新增：是否无限制
         }
       };
     } catch (error) {
@@ -505,9 +516,12 @@ class AIController {
           month: { total_requests: 0, total_tokens: 0, total_cost: 0 },
           rateLimit: { hourly_count: 0, daily_count: 0 },
           limits: {
-            hourly: parseInt(process.env.AI_RATE_LIMIT_PER_HOUR || '50'),
-            daily: parseInt(process.env.AI_RATE_LIMIT_PER_DAY || '200')
-          }
+            hourly: 30,
+            daily: 200
+          },
+          limitInfo: null,
+          userTier: 'free',
+          isUnlimited: false
         }
       };
     }

@@ -296,3 +296,41 @@ BEGIN
     SET NEW.content_text = REGEXP_REPLACE(NEW.content, '<[^>]*>', '');
 END //
 DELIMITER ;
+
+
+-- 添加用户等级和订阅字段
+-- 执行时间: 2025-11-06
+
+-- 1. 添加用户等级字段
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS tier VARCHAR(20) DEFAULT 'free' COMMENT '用户等级: free, basic, pro, enterprise';
+
+-- 2. 添加订阅状态字段
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS is_subscribed TINYINT(1) DEFAULT 0 COMMENT '是否订阅';
+
+-- 3. 添加订阅过期时间字段
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS subscription_expiry DATETIME NULL COMMENT '订阅过期时间';
+
+-- 4. 添加索引以提高查询性能
+ALTER TABLE users 
+ADD INDEX idx_tier (tier);
+
+ALTER TABLE users 
+ADD INDEX idx_subscription (is_subscribed, subscription_expiry);
+
+-- 5. 更新现有用户为免费用户（如果字段已存在则跳过）
+UPDATE users 
+SET tier = 'free', is_subscribed = 0 
+WHERE tier IS NULL OR tier = '';
+
+-- 6. 查看更新结果
+SELECT 
+  COUNT(*) as total_users,
+  SUM(CASE WHEN tier = 'free' THEN 1 ELSE 0 END) as free_users,
+  SUM(CASE WHEN tier = 'basic' THEN 1 ELSE 0 END) as basic_users,
+  SUM(CASE WHEN tier = 'pro' THEN 1 ELSE 0 END) as pro_users,
+  SUM(CASE WHEN tier = 'enterprise' THEN 1 ELSE 0 END) as enterprise_users,
+  SUM(CASE WHEN is_subscribed = 1 THEN 1 ELSE 0 END) as subscribed_users
+FROM users;
