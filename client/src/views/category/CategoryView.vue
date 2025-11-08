@@ -44,7 +44,7 @@
           v-for="category in filteredCategories"
           :key="category.id"
           class="category-card bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer transition-all"
-          @click="$router.push(`/notes?categoryId=${category.id}`)"
+          @click="$router.push(`/main/categories/${category.id}`)"
         >
           <div class="flex items-center justify-between mb-3">
             <div
