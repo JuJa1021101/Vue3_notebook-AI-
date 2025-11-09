@@ -125,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getNoteById } from "@/api/note";
 import type { Note } from "@/api/note";
@@ -166,9 +166,19 @@ const attachments = ref<Attachment[]>([]);
 const showPreview = ref(false);
 const previewAttachment = ref<Attachment | null>(null);
 
+// 标题折叠清理函数
+let cleanupHeadingCollapse: (() => void) | null = null;
+
 onMounted(() => {
   loadNote();
   loadAttachments();
+});
+
+onBeforeUnmount(() => {
+  // 清理标题折叠功能
+  if (cleanupHeadingCollapse) {
+    cleanupHeadingCollapse();
+  }
 });
 
 // 格式化时间显示
@@ -200,6 +210,10 @@ const loadNote = async () => {
         updatedAt: formatDate(apiNote.updated_at),
         isStarred: false,
       };
+
+      // 等待 DOM 更新后初始化标题折叠功能
+      await nextTick();
+      setupHeadingCollapse();
     } else {
       toast.error(response.data.message || "加载笔记失败");
       router.back();
@@ -209,6 +223,134 @@ const loadNote = async () => {
     toast.error(error.response?.data?.message || "加载笔记失败");
     router.back();
   }
+};
+
+// 设置标题折叠功能
+const setupHeadingCollapse = () => {
+  const contentElement = document.querySelector(".prose");
+  if (!contentElement) return;
+
+  // 创建 tooltip 元素
+  const tooltip = document.createElement("div");
+  tooltip.className = "heading-collapse-tooltip";
+  tooltip.style.cssText = `
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+  `;
+  document.body.appendChild(tooltip);
+
+  // 鼠标移动事件 - 显示 tooltip
+  const handleMouseMove = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const heading = target.closest("h1, h2, h3, h4, h5, h6");
+
+    if (heading) {
+      const rect = heading.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+
+      // 如果鼠标在 H 标签区域
+      if (clickX >= 2 && clickX <= 20) {
+        const headingLevel = heading.tagName;
+        tooltip.textContent = headingLevel;
+        // 固定在 H 标签上方
+        tooltip.style.left = `${rect.left + 11}px`;
+        tooltip.style.top = `${rect.top - 30}px`;
+        tooltip.style.opacity = "1";
+      }
+      // 如果鼠标在箭头区域
+      else if (clickX >= 21 && clickX <= 37) {
+        const isCollapsed = heading.classList.contains("collapsed");
+        tooltip.textContent = isCollapsed ? "展开" : "收起";
+        // 固定在箭头上方
+        tooltip.style.left = `${rect.left + 29}px`;
+        tooltip.style.top = `${rect.top - 30}px`;
+        tooltip.style.opacity = "1";
+      } else {
+        tooltip.style.opacity = "0";
+      }
+    } else {
+      tooltip.style.opacity = "0";
+    }
+  };
+
+  // 点击事件
+  const handleHeadingClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const heading = target.closest("h1, h2, h3, h4, h5, h6");
+    if (!heading) return;
+
+    const rect = heading.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+
+    // 如果点击位置在箭头区域，触发折叠
+    if (clickX >= 21 && clickX <= 37) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleHeadingInView(heading);
+      // 更新 tooltip 文字
+      const isCollapsed = heading.classList.contains("collapsed");
+      tooltip.textContent = isCollapsed ? "展开" : "收起";
+    }
+  };
+
+  contentElement.addEventListener("click", handleHeadingClick);
+  contentElement.addEventListener("mousemove", handleMouseMove);
+
+  // 返回清理函数
+  cleanupHeadingCollapse = () => {
+    contentElement.removeEventListener("click", handleHeadingClick);
+    contentElement.removeEventListener("mousemove", handleMouseMove);
+    tooltip.remove();
+  };
+};
+
+// 在查看页面中切换标题折叠状态
+const toggleHeadingInView = (heading: Element) => {
+  const isCollapsed = heading.classList.contains("collapsed");
+
+  if (isCollapsed) {
+    heading.classList.remove("collapsed");
+  } else {
+    heading.classList.add("collapsed");
+  }
+
+  // 获取当前标题的级别
+  const currentLevel = parseInt(heading.tagName.substring(1));
+
+  // 查找需要折叠/展开的内容
+  let nextElement = heading.nextElementSibling;
+  const elementsToToggle: Element[] = [];
+
+  while (nextElement) {
+    // 如果遇到同级或更高级的标题，停止
+    if (nextElement.tagName && nextElement.tagName.match(/^H[1-6]$/)) {
+      const nextLevel = parseInt(nextElement.tagName.substring(1));
+      if (!isNaN(nextLevel) && nextLevel <= currentLevel) {
+        break;
+      }
+    }
+
+    elementsToToggle.push(nextElement);
+    nextElement = nextElement.nextElementSibling;
+  }
+
+  // 切换显示状态
+  elementsToToggle.forEach((element) => {
+    if (!isCollapsed) {
+      (element as HTMLElement).style.display = "none";
+    } else {
+      (element as HTMLElement).style.display = "";
+    }
+  });
 };
 
 const toggleStar = () => {
@@ -278,7 +420,203 @@ const handlePreviewAttachment = (attachment: Attachment) => {
   color: #d1d5db;
 }
 
-/* 标题样式 */
+/* 标题样式 - 只在悬停时显示折叠功能 */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  position: relative;
+  padding-left: 42px;
+  margin-left: 0;
+  transition: background-color 0.2s ease;
+}
+
+/* 正文内容与标题对齐 */
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose pre,
+.prose table {
+  margin-left: 42px;
+}
+
+.prose h1:hover,
+.prose h2:hover,
+.prose h3:hover,
+.prose h4:hover,
+.prose h5:hover,
+.prose h6:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+}
+
+.dark .prose h1:hover,
+.dark .prose h2:hover,
+.dark .prose h3:hover,
+.dark .prose h4:hover,
+.dark .prose h5:hover,
+.dark .prose h6:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 标题级别标签 - 默认隐藏，悬停时显示，在最左边 */
+.prose h1::before {
+  content: "H1";
+}
+
+.prose h2::before {
+  content: "H2";
+}
+
+.prose h3::before {
+  content: "H3";
+}
+
+.prose h4::before {
+  content: "H4";
+}
+
+.prose h5::before {
+  content: "H5";
+}
+
+.prose h6::before {
+  content: "H6";
+}
+
+.prose h1::before,
+.prose h2::before,
+.prose h3::before,
+.prose h4::before,
+.prose h5::before,
+.prose h6::before {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  width: 18px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.prose h1:hover::before,
+.prose h2:hover::before,
+.prose h3:hover::before,
+.prose h4:hover::before,
+.prose h5:hover::before,
+.prose h6:hover::before {
+  opacity: 1;
+}
+
+/* 折叠按钮 - 默认隐藏，悬停时显示，在 H 标签右边 */
+.prose h1::after,
+.prose h2::after,
+.prose h3::after,
+.prose h4::after,
+.prose h5::after,
+.prose h6::after {
+  content: "\f078"; /* Font Awesome chevron-down */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  left: 21px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #60a5fa;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+  opacity: 0;
+}
+
+.prose h1:hover::after,
+.prose h2:hover::after,
+.prose h3:hover::after,
+.prose h4:hover::after,
+.prose h5:hover::after,
+.prose h6:hover::after {
+  opacity: 1;
+}
+
+.prose h1::after:hover,
+.prose h2::after:hover,
+.prose h3::after:hover,
+.prose h4::after:hover,
+.prose h5::after:hover,
+.prose h6::after:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 折叠状态的标题 - 箭头向右，且始终显示 */
+.prose h1.collapsed::before,
+.prose h2.collapsed::before,
+.prose h3.collapsed::before,
+.prose h4.collapsed::before,
+.prose h5.collapsed::before,
+.prose h6.collapsed::before {
+  opacity: 1;
+}
+
+.prose h1.collapsed::after,
+.prose h2.collapsed::after,
+.prose h3.collapsed::after,
+.prose h4.collapsed::after,
+.prose h5.collapsed::after,
+.prose h6.collapsed::after {
+  content: "\f054"; /* Font Awesome chevron-right */
+  opacity: 1;
+}
+
+.prose h1.collapsed,
+.prose h2.collapsed,
+.prose h3.collapsed,
+.prose h4.collapsed,
+.prose h5.collapsed,
+.prose h6.collapsed {
+  margin-bottom: 0.5em;
+}
+
+/* 暗色模式下的样式 */
+.dark .prose h1::before,
+.dark .prose h2::before,
+.dark .prose h3::before,
+.dark .prose h4::before,
+.dark .prose h5::before,
+.dark .prose h6::before {
+  color: #6b7280;
+}
+
+.dark .prose h1::after,
+.dark .prose h2::after,
+.dark .prose h3::after,
+.dark .prose h4::after,
+.dark .prose h5::after,
+.dark .prose h6::after {
+  color: #60a5fa;
+}
+
+.dark .prose h1::after:hover,
+.dark .prose h2::after:hover,
+.dark .prose h3::after:hover,
+.dark .prose h4::after:hover,
+.dark .prose h5::after:hover,
+.dark .prose h6::after:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
 .prose h1 {
   font-size: 2em;
   font-weight: 700;

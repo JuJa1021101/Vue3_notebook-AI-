@@ -215,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
@@ -267,6 +267,9 @@ const showFloatingButtons = ref(true); // 控制浮动按钮显示/隐藏
 // AI Store
 const aiStore = useAIStore();
 
+// 标题折叠清理函数
+let cleanupHeadingCollapse: (() => void) | null = null;
+
 // 节流函数 - 第一次立即执行，后续点击在延迟时间内被忽略
 const throttle = (fn: Function, delay: number) => {
   let lastTime = 0;
@@ -297,7 +300,7 @@ const toolbarOptions = [
   ["bold", "italic", "underline"],
   [{ list: "ordered" }, { list: "bullet" }],
   ["blockquote", "code-block"],
-  [{ header: [1, 2, 3, false] }],
+  [{ header: [1, 2, 3, 4, 5, 6, false] }], // 支持 H1-H6 标题
   [{ color: [] }, { background: [] }],
   [{ align: [] }],
   ["image"], // 添加图片按钮
@@ -311,6 +314,13 @@ onMounted(() => {
   }
 });
 
+onBeforeUnmount(() => {
+  // 清理标题折叠功能
+  if (cleanupHeadingCollapse) {
+    cleanupHeadingCollapse();
+  }
+});
+
 const onEditorReady = () => {
   // 编辑器准备就绪
   console.log("编辑器已准备就绪");
@@ -319,7 +329,139 @@ const onEditorReady = () => {
   setTimeout(() => {
     addToolbarTooltips();
     setupImageUploadHandler();
+    setupHeadingCollapse();
   }, 100);
+};
+
+// 设置标题折叠功能
+const setupHeadingCollapse = () => {
+  const quill = quillEditor.value?.getQuill();
+  if (!quill) return;
+
+  const editorElement = quill.root;
+  if (editorElement) {
+    // 创建 tooltip 元素
+    const tooltip = document.createElement("div");
+    tooltip.className = "heading-collapse-tooltip";
+    tooltip.style.cssText = `
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 1000;
+    `;
+    document.body.appendChild(tooltip);
+
+    // 鼠标移动事件 - 显示 tooltip
+    const handleMouseMove = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const heading = target.closest("h1, h2, h3, h4, h5, h6");
+
+      if (heading) {
+        const rect = heading.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+
+        // 如果鼠标在 H 标签区域
+        if (clickX >= 2 && clickX <= 20) {
+          const headingLevel = heading.tagName;
+          tooltip.textContent = headingLevel;
+          // 固定在 H 标签上方
+          tooltip.style.left = `${rect.left + 11}px`;
+          tooltip.style.top = `${rect.top - 30}px`;
+          tooltip.style.opacity = "1";
+        }
+        // 如果鼠标在箭头区域
+        else if (clickX >= 21 && clickX <= 37) {
+          const isCollapsed = heading.classList.contains("collapsed");
+          tooltip.textContent = isCollapsed ? "展开" : "收起";
+          // 固定在箭头上方
+          tooltip.style.left = `${rect.left + 29}px`;
+          tooltip.style.top = `${rect.top - 30}px`;
+          tooltip.style.opacity = "1";
+        } else {
+          tooltip.style.opacity = "0";
+        }
+      } else {
+        tooltip.style.opacity = "0";
+      }
+    };
+
+    // 点击事件
+    const handleHeadingClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const heading = target.closest("h1, h2, h3, h4, h5, h6");
+      if (!heading) return;
+
+      const rect = heading.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+
+      // 如果点击位置在箭头区域，触发折叠
+      if (clickX >= 21 && clickX <= 37) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleHeadingInEditor(heading);
+        // 更新 tooltip 文字
+        const isCollapsed = heading.classList.contains("collapsed");
+        tooltip.textContent = isCollapsed ? "展开" : "收起";
+      }
+    };
+
+    editorElement.addEventListener("click", handleHeadingClick);
+    editorElement.addEventListener("mousemove", handleMouseMove);
+
+    // 返回清理函数
+    cleanupHeadingCollapse = () => {
+      editorElement.removeEventListener("click", handleHeadingClick);
+      editorElement.removeEventListener("mousemove", handleMouseMove);
+      tooltip.remove();
+    };
+  }
+};
+
+// 在编辑器中切换标题折叠状态
+const toggleHeadingInEditor = (heading: Element) => {
+  const isCollapsed = heading.classList.contains("collapsed");
+
+  if (isCollapsed) {
+    heading.classList.remove("collapsed");
+  } else {
+    heading.classList.add("collapsed");
+  }
+
+  // 获取当前标题的级别
+  const currentLevel = parseInt(heading.tagName.substring(1));
+
+  // 查找需要折叠/展开的内容
+  let nextElement = heading.nextElementSibling;
+  const elementsToToggle: Element[] = [];
+
+  while (nextElement) {
+    // 如果遇到同级或更高级的标题，停止
+    if (nextElement.tagName && nextElement.tagName.match(/^H[1-6]$/)) {
+      const nextLevel = parseInt(nextElement.tagName.substring(1));
+      if (!isNaN(nextLevel) && nextLevel <= currentLevel) {
+        break;
+      }
+    }
+
+    elementsToToggle.push(nextElement);
+    nextElement = nextElement.nextElementSibling;
+  }
+
+  // 切换显示状态
+  elementsToToggle.forEach((element) => {
+    if (!isCollapsed) {
+      (element as HTMLElement).style.display = "none";
+    } else {
+      (element as HTMLElement).style.display = "";
+    }
+  });
 };
 
 // 设置图片上传处理器
@@ -956,6 +1098,203 @@ const regenerateAI = async () => {
   padding: 0.2em 0.4em;
   border-radius: 3px;
   font-family: monospace;
+}
+
+/* 标题折叠按钮样式 - 只在悬停时显示 */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+  position: relative;
+  padding-left: 42px;
+  margin-left: 0;
+  transition: background-color 0.2s ease;
+}
+
+/* 正文内容与标题对齐 */
+.ql-editor p,
+.ql-editor ul,
+.ql-editor ol,
+.ql-editor blockquote,
+.ql-editor pre,
+.ql-editor table {
+  margin-left: 42px;
+}
+
+.ql-editor h1:hover,
+.ql-editor h2:hover,
+.ql-editor h3:hover,
+.ql-editor h4:hover,
+.ql-editor h5:hover,
+.ql-editor h6:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+}
+
+.dark .ql-editor h1:hover,
+.dark .ql-editor h2:hover,
+.dark .ql-editor h3:hover,
+.dark .ql-editor h4:hover,
+.dark .ql-editor h5:hover,
+.dark .ql-editor h6:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 标题级别标签 - 默认隐藏，悬停时显示，在最左边 */
+.ql-editor h1::before {
+  content: "H1";
+}
+
+.ql-editor h2::before {
+  content: "H2";
+}
+
+.ql-editor h3::before {
+  content: "H3";
+}
+
+.ql-editor h4::before {
+  content: "H4";
+}
+
+.ql-editor h5::before {
+  content: "H5";
+}
+
+.ql-editor h6::before {
+  content: "H6";
+}
+
+.ql-editor h1::before,
+.ql-editor h2::before,
+.ql-editor h3::before,
+.ql-editor h4::before,
+.ql-editor h5::before,
+.ql-editor h6::before {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  width: 18px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ql-editor h1:hover::before,
+.ql-editor h2:hover::before,
+.ql-editor h3:hover::before,
+.ql-editor h4:hover::before,
+.ql-editor h5:hover::before,
+.ql-editor h6:hover::before {
+  opacity: 1;
+}
+
+/* 折叠按钮 - 默认隐藏，悬停时显示，在 H 标签右边 */
+.ql-editor h1::after,
+.ql-editor h2::after,
+.ql-editor h3::after,
+.ql-editor h4::after,
+.ql-editor h5::after,
+.ql-editor h6::after {
+  content: "\f078"; /* Font Awesome chevron-down */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  left: 21px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #60a5fa;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+  opacity: 0;
+}
+
+.ql-editor h1:hover::after,
+.ql-editor h2:hover::after,
+.ql-editor h3:hover::after,
+.ql-editor h4:hover::after,
+.ql-editor h5:hover::after,
+.ql-editor h6:hover::after {
+  opacity: 1;
+}
+
+.ql-editor h1::after:hover,
+.ql-editor h2::after:hover,
+.ql-editor h3::after:hover,
+.ql-editor h4::after:hover,
+.ql-editor h5::after:hover,
+.ql-editor h6::after:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 折叠状态的标题 - 箭头向右，且始终显示 */
+.ql-editor h1.collapsed::before,
+.ql-editor h2.collapsed::before,
+.ql-editor h3.collapsed::before,
+.ql-editor h4.collapsed::before,
+.ql-editor h5.collapsed::before,
+.ql-editor h6.collapsed::before {
+  opacity: 1;
+}
+
+.ql-editor h1.collapsed::after,
+.ql-editor h2.collapsed::after,
+.ql-editor h3.collapsed::after,
+.ql-editor h4.collapsed::after,
+.ql-editor h5.collapsed::after,
+.ql-editor h6.collapsed::after {
+  content: "\f054"; /* Font Awesome chevron-right */
+  opacity: 1;
+}
+
+.ql-editor h1.collapsed,
+.ql-editor h2.collapsed,
+.ql-editor h3.collapsed,
+.ql-editor h4.collapsed,
+.ql-editor h5.collapsed,
+.ql-editor h6.collapsed {
+  margin-bottom: 0.5em;
+}
+
+/* 暗色模式下的样式 */
+.dark .ql-editor h1::before,
+.dark .ql-editor h2::before,
+.dark .ql-editor h3::before,
+.dark .ql-editor h4::before,
+.dark .ql-editor h5::before,
+.dark .ql-editor h6::before {
+  color: #6b7280;
+}
+
+.dark .ql-editor h1::after,
+.dark .ql-editor h2::after,
+.dark .ql-editor h3::after,
+.dark .ql-editor h4::after,
+.dark .ql-editor h5::after,
+.dark .ql-editor h6::after {
+  color: #60a5fa;
+}
+
+.dark .ql-editor h1::after:hover,
+.dark .ql-editor h2::after:hover,
+.dark .ql-editor h3::after:hover,
+.dark .ql-editor h4::after:hover,
+.dark .ql-editor h5::after:hover,
+.dark .ql-editor h6::after:hover {
+  background-color: rgba(59, 130, 246, 0.2);
 }
 
 /* 浮动按钮动画 - 从眼睛按钮位置向上展开 */
