@@ -12,13 +12,14 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 保持原文内容不变，在结尾处继续写
+1. 只输出续写的新内容，不要重复原文
 2. 续写长度：50-200字
 3. 写作风格：{style}
 4. 保持语气和主题一致
-5. 输出完整的原文+续写内容
+5. 如果原文包含 Markdown 格式（如标题、列表、粗体等），续写内容也要使用相同的格式风格
+6. 保持格式的连贯性和一致性
 
-请输出完整的文本内容（原文+续写）。`,
+请只输出续写的新内容。`,
 
       medium: `你是一个专业的写作助手。用户已经写了一段内容，现在需要你接着往下写。
 
@@ -26,14 +27,15 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 保持原文内容不变，在结尾处继续写
+1. 只输出续写的新内容，不要重复原文
 2. 续写长度：200-500字
 3. 写作风格：{style}
 4. 保持语气和主题一致
 5. 可以适当展开论述
-6. 输出完整的原文+续写内容
+6. 如果原文包含 Markdown 格式（如标题、列表、粗体等），续写内容也要使用相同的格式风格
+7. 保持格式的连贯性和一致性
 
-请输出完整的文本内容（原文+续写）。`,
+请只输出续写的新内容。`,
 
       long: `你是一个专业的写作助手。用户已经写了一段内容，现在需要你接着往下写。
 
@@ -41,14 +43,15 @@ const PromptTemplates = {
 {content}
 
 【重要规则】
-1. 保持原文内容不变，在结尾处继续写
+1. 只输出续写的新内容，不要重复原文
 2. 续写长度：500-800字
 3. 写作风格：{style}
 4. 保持语气和主题一致
 5. 充分展开论述，可以添加例子和细节
-6. 输出完整的原文+续写内容
+6. 如果原文包含 Markdown 格式（如标题、列表、粗体等），续写内容也要使用相同的格式风格
+7. 保持格式的连贯性和一致性
 
-请输出完整的文本内容（原文+续写）。`
+请只输出续写的新内容。`
     },
     en: {
       short: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
@@ -57,14 +60,15 @@ Existing content:
 {content}
 
 Requirements:
-- Keep the original content unchanged and continue at the end
+- Output only the new continuation content, do not repeat the original text
 - Length: 50-200 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
-- Output the complete text (original + continuation)
+- If the original text contains Markdown formatting (headings, lists, bold, etc.), use the same formatting style in the continuation
+- Maintain formatting consistency
 
-Please output the complete text (original + continuation).`,
+Please output only the new continuation content.`,
 
       medium: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
 
@@ -72,15 +76,16 @@ Existing content:
 {content}
 
 Requirements:
-- Keep the original content unchanged and continue at the end
+- Output only the new continuation content, do not repeat the original text
 - Length: 200-500 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
 - Expand the discussion appropriately
-- Output the complete text (original + continuation)
+- If the original text contains Markdown formatting (headings, lists, bold, etc.), use the same formatting style in the continuation
+- Maintain formatting consistency
 
-Please output the complete text (original + continuation).`,
+Please output only the new continuation content.`,
 
       long: `You are a professional writing assistant. Please continue writing based on the following content, maintaining consistent style and coherent content.
 
@@ -88,15 +93,16 @@ Existing content:
 {content}
 
 Requirements:
-- Keep the original content unchanged and continue at the end
+- Output only the new continuation content, do not repeat the original text
 - Length: 500-800 words for continuation
 - Writing style: {style}
 - Maintain consistent tone and theme
 - Content should be valuable and in-depth
 - Fully expand the discussion with examples and details
-- Output the complete text (original + continuation)
+- If the original text contains Markdown formatting (headings, lists, bold, etc.), use the same formatting style in the continuation
+- Maintain formatting consistency
 
-Please output the complete text (original + continuation).`
+Please output only the new continuation content.`
     }
   },
 
@@ -299,9 +305,10 @@ Please output the summary.`
 - 目标长度：{length}
 - 写作风格：{style}
 - 保持原文核心观点
+- 如果原文包含 Markdown 格式（如标题、列表、粗体等），扩写后的内容也要保持相同的格式风格
 - 输出完整的扩写后内容（包含原文）
 
-【重要】直接输出扩写后的完整内容，不要添加任何说明性文字（如"以下是扩写后的内容"、"本次扩写..."等）。`,
+【重要】直接输出扩写后的完整内容，不要添加任何说明性文字（如"以下是扩写后的内容"、"本次扩写..."等）。保持 Markdown 格式的完整性。`,
 
     en: `Please expand the following brief content to make it more detailed and complete:
 
@@ -315,9 +322,10 @@ Requirements:
 - Target length: {length}
 - Writing style: {style}
 - Keep the core viewpoint
+- If the original text contains Markdown formatting (headings, lists, bold, etc.), maintain the same formatting style in the expanded content
 - Output the complete expanded content (including original)
 
-【IMPORTANT】Output the complete expanded content directly without any explanatory text (such as "Here is the expanded content", "This expansion...").`
+【IMPORTANT】Output the complete expanded content directly without any explanatory text (such as "Here is the expanded content", "This expansion..."). Maintain Markdown formatting integrity.`
   }
 };
 

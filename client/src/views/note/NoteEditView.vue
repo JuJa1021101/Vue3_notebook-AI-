@@ -850,12 +850,31 @@ const handleAIAction = async (actionId: string) => {
     const selection = quill.getSelection();
     let content = "";
 
-    if (selection && selection.length > 0) {
-      // 有选中文本
-      content = quill.getText(selection.index, selection.length);
+    // 对于续写和扩写操作，使用 Markdown 格式以保留样式
+    const needsMarkdown = ["continue", "expand"].includes(actionId);
+
+    if (needsMarkdown) {
+      // 动态导入 Markdown 转换工具
+      const { getMarkdownFromQuill } = await import("@/utils/quillToMarkdown");
+
+      if (selection && selection.length > 0) {
+        // 有选中文本
+        content = getMarkdownFromQuill(
+          quill,
+          selection.index,
+          selection.length
+        );
+      } else {
+        // 没有选中，使用全部内容
+        content = getMarkdownFromQuill(quill);
+      }
     } else {
-      // 没有选中，使用全部内容
-      content = quill.getText();
+      // 其他操作使用纯文本
+      if (selection && selection.length > 0) {
+        content = quill.getText(selection.index, selection.length);
+      } else {
+        content = quill.getText();
+      }
     }
 
     if (!content.trim()) {
@@ -912,23 +931,22 @@ const applyAIResult = (result: string) => {
     const hasMarkdownSyntax =
       /^#{1,6}\s|^\*\*|^\*|^-\s|^\d+\.\s|^>\s|```/m.test(result);
 
-    // 对于所有可能包含 Markdown 的内容，都进行解析
+    // 对于格式优化、排版美化、续写和扩写操作，都进行 Markdown 解析
     const shouldRenderMarkdown =
-      currentAction === "format" ||
-      currentAction === "beautify" ||
-      hasMarkdownSyntax;
+      ["format", "beautify", "continue", "expand"].includes(
+        currentAction || ""
+      ) || hasMarkdownSyntax;
 
     if (shouldRenderMarkdown) {
       // 使用marked库解析Markdown为HTML
-      import("marked").then(({ marked }) => {
+      import("marked").then(async ({ marked }) => {
         // 确保marked配置正确以处理所有Markdown语法
         marked.setOptions({
           breaks: true, // 将换行符转换为<br>
           gfm: true, // 启用GitHub风格的Markdown
-          headerIds: false, // 禁用自动生成的header id
         });
 
-        const htmlContent = marked(result);
+        const htmlContent = await marked(result);
 
         console.log("应用的HTML内容长度:", htmlContent.length);
 

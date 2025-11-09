@@ -107,9 +107,11 @@ const currentAction = computed(() => aiStore.currentAction);
 const processedContentRef = ref<HTMLElement | null>(null);
 const modalBodyRef = ref<HTMLElement | null>(null);
 
-// 判断是否需要渲染Markdown（只针对格式优化和排版美化操作）
+// 判断是否需要渲染Markdown（针对格式优化、排版美化、续写和扩写操作）
 const shouldRenderMarkdown = computed(() => {
-  return currentAction.value === "format" || currentAction.value === "beautify";
+  return ["format", "beautify", "continue", "expand"].includes(
+    currentAction.value || ""
+  );
 });
 
 // 解析Markdown内容
