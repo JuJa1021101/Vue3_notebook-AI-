@@ -27,15 +27,11 @@ export const useAuthStore = defineStore('auth', () => {
 
         console.log('登录成功，用户信息:', user.value)
 
-        // 登录成功后加载AI设置
-        try {
-          const aiStore = useAIStore()
-          await aiStore.fetchSettings()
-          console.log('AI设置加载成功:', aiStore.settings)
-        } catch (error) {
+        // 登录成功后加载AI设置（不影响登录流程）
+        const aiStore = useAIStore()
+        aiStore.fetchSettings().catch(error => {
           console.error('加载AI设置失败:', error)
-          // 不影响登录流程，继续执行
-        }
+        })
       } else {
         throw new Error(response.data.message || '登录失败')
       }
@@ -76,15 +72,11 @@ export const useAuthStore = defineStore('auth', () => {
 
         console.log('注册成功，用户信息:', user.value)
 
-        // 注册成功后加载AI设置
-        try {
-          const aiStore = useAIStore()
-          await aiStore.fetchSettings()
-          console.log('AI设置加载成功:', aiStore.settings)
-        } catch (error) {
+        // 注册成功后加载AI设置（不影响注册流程）
+        const aiStore = useAIStore()
+        aiStore.fetchSettings().catch(error => {
           console.error('加载AI设置失败:', error)
-          // 不影响注册流程，继续执行
-        }
+        })
       } else {
         throw new Error(response.data.message || '注册失败')
       }

@@ -29,18 +29,13 @@ const shouldShowTabBar = computed(() => {
   return tabBarRoutes.includes(route.name as string);
 });
 
-onMounted(async () => {
+onMounted(() => {
   // 加载主题设置
   themeStore.loadSettings();
 
-  // 确保AI设置已加载（如果尚未加载）
-  if (!aiStore.settings) {
-    try {
-      await aiStore.fetchSettings();
-      console.log("MainLayout: AI设置加载成功:", aiStore.settings);
-    } catch (error) {
-      console.error("MainLayout: 加载AI设置失败:", error);
-    }
-  }
+  // 尝试加载AI设置（如果尚未加载，store 内部会自动跳过）
+  aiStore.fetchSettings().catch((error: any) => {
+    console.error("MainLayout: 加载AI设置失败:", error);
+  });
 });
 </script>

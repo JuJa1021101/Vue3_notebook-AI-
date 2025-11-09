@@ -342,14 +342,35 @@ const setupFormatPersistence = () => {
   // 保存当前格式状态
   let pendingFormats: any = {};
 
+  // 获取工具栏按钮
+  const boldButton = document.querySelector(".ql-bold");
+
   // 监听格式变化
   quill.on("selection-change", (range: any) => {
     if (range) {
       // 获取当前光标位置的格式
       const formats = quill.getFormat(range);
 
+      // 检查是否在标题行
+      const isInHeading = formats.header !== undefined;
+
+      // 如果在标题行，禁用加粗按钮
+      if (boldButton) {
+        if (isInHeading) {
+          boldButton.classList.add("ql-disabled");
+          boldButton.setAttribute("disabled", "disabled");
+          (boldButton as HTMLElement).style.opacity = "0.5";
+          (boldButton as HTMLElement).style.cursor = "not-allowed";
+        } else {
+          boldButton.classList.remove("ql-disabled");
+          boldButton.removeAttribute("disabled");
+          (boldButton as HTMLElement).style.opacity = "";
+          (boldButton as HTMLElement).style.cursor = "";
+        }
+      }
+
       // 如果没有选中文本（range.length === 0），保存格式状态
-      if (range.length === 0) {
+      if (range.length === 0 && !isInHeading) {
         pendingFormats = formats;
       }
     }
@@ -360,18 +381,40 @@ const setupFormatPersistence = () => {
     if (source === "user") {
       const selection = quill.getSelection();
       if (selection && Object.keys(pendingFormats).length > 0) {
-        // 应用保存的格式到新输入的文本
+        // 获取当前格式
         const currentFormats = quill.getFormat(selection);
 
-        // 合并格式
-        Object.keys(pendingFormats).forEach((key) => {
-          if (pendingFormats[key] && !currentFormats[key]) {
-            quill.format(key, pendingFormats[key]);
-          }
-        });
+        // 如果不在标题行，应用保存的格式
+        if (currentFormats.header === undefined) {
+          // 合并格式
+          Object.keys(pendingFormats).forEach((key) => {
+            if (pendingFormats[key] && !currentFormats[key]) {
+              quill.format(key, pendingFormats[key]);
+            }
+          });
+        }
       }
     }
   });
+
+  // 阻止在标题行中使用加粗功能
+  if (boldButton) {
+    boldButton.addEventListener(
+      "click",
+      (e) => {
+        const selection = quill.getSelection();
+        if (selection) {
+          const formats = quill.getFormat(selection);
+          if (formats.header !== undefined) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        }
+      },
+      true
+    );
+  }
 };
 
 // 设置标题折叠功能
@@ -1152,6 +1195,7 @@ const regenerateAI = async () => {
   padding-left: 42px;
   margin-left: 0;
   transition: background-color 0.2s ease;
+  font-weight: bold !important;
 }
 
 /* 正文内容与标题对齐 */

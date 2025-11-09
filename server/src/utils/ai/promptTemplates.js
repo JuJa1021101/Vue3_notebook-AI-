@@ -115,7 +115,7 @@ Please output the complete text (original + continuation).`
 - 优化引用格式
 - 保持原文内容不变，只优化格式
 
-请输出优化后的 Markdown 格式文本。`,
+【重要】直接输出优化后的内容，不要添加任何说明性文字（如"此版本使用了..."、"本次优化..."等），不要添加前缀（如"格式优化后："），不要添加后缀说明。`,
 
     en: `Please optimize the format of the following text to make it more standardized and readable:
 
@@ -130,7 +130,7 @@ Requirements:
 - Optimize quote formats
 - Keep the original content unchanged, only optimize the format
 
-Please output the optimized Markdown formatted text.`
+【IMPORTANT】Output the optimized content directly without any explanatory text (such as "This version uses...", "This optimization..."), without prefixes (such as "After formatting:"), and without suffix explanations.`
   },
 
   // 排版美化
@@ -148,7 +148,7 @@ Please output the optimized Markdown formatted text.`
 - 改善整体可读性
 - 保持原文意思不变
 
-请输出排版优化后的 Markdown 文本。`,
+【重要】直接输出优化后的内容，不要添加任何说明性文字（如"此版本使用了..."、"本次优化..."等），不要添加前缀（如"排版美化后："），不要添加后缀说明。`,
 
     en: `Please beautify the layout of the following text to make its structure clearer:
 
@@ -163,7 +163,7 @@ Requirements:
 - Improve overall readability
 - Keep the original meaning unchanged
 
-Please output the layout-optimized Markdown text.`
+【IMPORTANT】Output the optimized content directly without any explanatory text (such as "This version uses...", "This optimization..."), without prefixes (such as "After beautification:"), and without suffix explanations.`
   },
 
   // 内容润色
@@ -181,7 +181,7 @@ Please output the layout-optimized Markdown text.`
 - 写作风格：{style}
 - 保持原文核心意思不变
 
-请输出润色后的文本。`,
+【重要】直接输出润色后的内容，不要添加任何说明性文字（如"当然可以"、"以下是润色后的版本"、"保持了..."等），不要添加前缀和后缀说明。`,
 
     en: `Please polish the following text to make it more fluent and professional:
 
@@ -196,7 +196,7 @@ Requirements:
 - Writing style: {style}
 - Keep the core meaning unchanged
 
-Please output the polished text.`
+【IMPORTANT】Output the polished content directly without any explanatory text (such as "Sure", "Here is the polished version", "This maintains..."), without prefixes and suffix explanations.`
   },
 
   // 生成摘要
@@ -213,7 +213,7 @@ Please output the polished text.`
 - 保留关键信息
 - 语言简洁明了
 
-请输出摘要内容。`,
+【重要】直接输出摘要内容，不要添加任何说明性文字（如"以下是摘要"、"本摘要..."等）。`,
 
       medium: `请为以下文本生成摘要：
 
@@ -226,7 +226,7 @@ Please output the polished text.`
 - 保留关键信息和重要细节
 - 语言简洁明了
 
-请输出摘要内容。`,
+【重要】直接输出摘要内容，不要添加任何说明性文字（如"以下是摘要"、"本摘要..."等）。`,
 
       long: `请为以下文本生成详细摘要：
 
@@ -240,7 +240,7 @@ Please output the polished text.`
 - 可以分点列出
 - 语言简洁明了
 
-请输出摘要内容。`
+【重要】直接输出摘要内容，不要添加任何说明性文字（如"以下是摘要"、"本摘要..."等）。`
     },
     en: {
       short: `Please generate a concise summary for the following text:
@@ -301,7 +301,7 @@ Please output the summary.`
 - 保持原文核心观点
 - 输出完整的扩写后内容（包含原文）
 
-请输出完整的扩写后内容（包含原文）。`,
+【重要】直接输出扩写后的完整内容，不要添加任何说明性文字（如"以下是扩写后的内容"、"本次扩写..."等）。`,
 
     en: `Please expand the following brief content to make it more detailed and complete:
 
@@ -317,7 +317,7 @@ Requirements:
 - Keep the core viewpoint
 - Output the complete expanded content (including original)
 
-Please output the complete expanded content (including original).`
+【IMPORTANT】Output the complete expanded content directly without any explanatory text (such as "Here is the expanded content", "This expansion...").`
   }
 };
 

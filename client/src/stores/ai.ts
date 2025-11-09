@@ -22,6 +22,8 @@ interface AIState {
   currentProcessingTime: number;
   showUpgradePrompt: boolean;
   upgradePromptMessage: string;
+  isLoadingSettings: boolean;
+  isLoadingStats: boolean;
 }
 
 export const useAIStore = defineStore('ai', {
@@ -40,6 +42,8 @@ export const useAIStore = defineStore('ai', {
     currentProcessingTime: 0,
     showUpgradePrompt: false,
     upgradePromptMessage: '',
+    isLoadingSettings: false,
+    isLoadingStats: false,
   }),
 
   getters: {
@@ -147,24 +151,8 @@ export const useAIStore = defineStore('ai', {
               result = this.removeOriginalContent(result, content);
             }
 
-            // 对于格式优化操作，去除说明内容
-            if (action === 'format') {
-              // 去除开头的说明内容
-              const startMatch = result.match(/[：:]\s*\n/);
-              if (startMatch && startMatch.index !== undefined) {
-                result = result.substring(startMatch.index + 1).trim();
-              }
-
-              // 去除结尾的优化说明部分
-              const endKeywords = ['优化说明', '如图所示'];
-              for (const keyword of endKeywords) {
-                const keywordIndex = result.lastIndexOf(keyword);
-                if (keywordIndex !== -1) {
-                  result = result.substring(0, keywordIndex).trim();
-                  break;
-                }
-              }
-            }
+            // 对所有操作去除说明性文字
+            result = this.removeExplanatoryText(result, action);
 
             this.result = result;
             this.processedContent = result;
@@ -234,39 +222,8 @@ export const useAIStore = defineStore('ai', {
             result = this.removeOriginalContent(result, content);
           }
 
-          // 对于格式优化操作，去除说明内容
-          if (action === 'format' || action === 'beautify') {
-            // 只去除明确的说明性前缀（如"格式优化后："、"优化结果："等）
-            const prefixPatterns = [
-              /^格式优化后[：:]\s*\n/,
-              /^优化结果[：:]\s*\n/,
-              /^排版美化后[：:]\s*\n/,
-              /^以下是优化后的内容[：:]\s*\n/
-            ];
-
-            for (const pattern of prefixPatterns) {
-              const match = result.match(pattern);
-              if (match) {
-                result = result.substring(match[0].length).trim();
-                break;
-              }
-            }
-
-            // 去除结尾的优化说明部分（更精确的匹配）
-            const endPatterns = [
-              /\n\n---\s*\n优化说明[：:][\s\S]*$/,
-              /\n\n优化说明[：:][\s\S]*$/,
-              /\n\n如图所示[\s\S]*$/
-            ];
-
-            for (const pattern of endPatterns) {
-              const match = result.match(pattern);
-              if (match) {
-                result = result.substring(0, match.index).trim();
-                break;
-              }
-            }
-          }
+          // 对所有操作去除说明性文字
+          result = this.removeExplanatoryText(result, action);
 
           this.result = result;
           this.processedContent = result;
@@ -318,16 +275,89 @@ export const useAIStore = defineStore('ai', {
     },
 
     /**
+     * 去除说明性文字（统一处理所有 AI 操作）
+     */
+    removeExplanatoryText(result: string, action: AIAction): string {
+      let cleanedResult = result;
+
+      // 去除开头的说明性文字
+      const prefixPatterns = [
+        /^当然可以[！!]\s*/,
+        /^好的[，,]\s*/,
+        /^以下是[^：:\n]*[：:]\s*\n*/,
+        /^格式优化后[：:]\s*\n*/,
+        /^优化结果[：:]\s*\n*/,
+        /^排版美化后[：:]\s*\n*/,
+        /^润色后[：:]\s*\n*/,
+        /^摘要[：:]\s*\n*/,
+        /^扩写后[：:]\s*\n*/,
+        /^续写[：:]\s*\n*/,
+        /^此版本[^。]*。[^\n]*\n+/,
+        /^本次[^。]*。[^\n]*\n+/,
+        /^这[是次][^。]*。[^\n]*\n+/,
+        /^已[为对][^。]*。[^\n]*\n+/,
+        /^保持了[^。]*。[^\n]*\n+/
+      ];
+
+      for (const pattern of prefixPatterns) {
+        const match = cleanedResult.match(pattern);
+        if (match) {
+          cleanedResult = cleanedResult.substring(match[0].length).trim();
+          break;
+        }
+      }
+
+      // 去除结尾的说明性文字
+      const endPatterns = [
+        /\n\n---\s*\n[^]*$/,
+        /\n\n优化说明[：:][^]*$/,
+        /\n\n说明[：:][^]*$/,
+        /\n\n如图所示[^]*$/,
+        /\n\n此版本[^]*$/,
+        /\n\n本次[^]*$/,
+        /\n\n以上[^]*$/,
+        /\n\n希望[^]*$/
+      ];
+
+      for (const pattern of endPatterns) {
+        const match = cleanedResult.match(pattern);
+        if (match && match.index !== undefined) {
+          cleanedResult = cleanedResult.substring(0, match.index).trim();
+          break;
+        }
+      }
+
+      return cleanedResult;
+    },
+
+    /**
      * 获取设置
      */
     async fetchSettings() {
+      // 防止重复加载
+      if (this.isLoadingSettings) {
+        console.log('AI 设置正在加载中，跳过重复请求');
+        return;
+      }
+
+      // 如果已有设置，跳过加载
+      if (this.settings) {
+        console.log('AI 设置已存在，跳过加载');
+        return;
+      }
+
+      this.isLoadingSettings = true;
       try {
         const response = await aiAPI.getSettings();
         if (response.success) {
           this.settings = response.data;
+          console.log('AI 设置加载成功');
         }
       } catch (error) {
         console.error('获取 AI 设置失败:', error);
+        throw error;
+      } finally {
+        this.isLoadingSettings = false;
       }
     },
 
@@ -357,6 +387,12 @@ export const useAIStore = defineStore('ai', {
      * 获取统计
      */
     async fetchStats() {
+      // 防止重复加载
+      if (this.isLoadingStats) {
+        return;
+      }
+
+      this.isLoadingStats = true;
       try {
         const response = await aiAPI.getStats();
         if (response.success) {
@@ -364,6 +400,9 @@ export const useAIStore = defineStore('ai', {
         }
       } catch (error) {
         console.error('获取 AI 统计失败:', error);
+        throw error;
+      } finally {
+        this.isLoadingStats = false;
       }
     },
 
