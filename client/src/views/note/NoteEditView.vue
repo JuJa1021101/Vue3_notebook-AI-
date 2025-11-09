@@ -330,7 +330,48 @@ const onEditorReady = () => {
     addToolbarTooltips();
     setupImageUploadHandler();
     setupHeadingCollapse();
+    setupFormatPersistence();
   }, 100);
+};
+
+// 设置格式持久化 - 解决点击格式按钮后输入文字格式消失的问题
+const setupFormatPersistence = () => {
+  const quill = quillEditor.value?.getQuill();
+  if (!quill) return;
+
+  // 保存当前格式状态
+  let pendingFormats: any = {};
+
+  // 监听格式变化
+  quill.on("selection-change", (range: any) => {
+    if (range) {
+      // 获取当前光标位置的格式
+      const formats = quill.getFormat(range);
+
+      // 如果没有选中文本（range.length === 0），保存格式状态
+      if (range.length === 0) {
+        pendingFormats = formats;
+      }
+    }
+  });
+
+  // 监听文本变化
+  quill.on("text-change", (delta: any, oldDelta: any, source: string) => {
+    if (source === "user") {
+      const selection = quill.getSelection();
+      if (selection && Object.keys(pendingFormats).length > 0) {
+        // 应用保存的格式到新输入的文本
+        const currentFormats = quill.getFormat(selection);
+
+        // 合并格式
+        Object.keys(pendingFormats).forEach((key) => {
+          if (pendingFormats[key] && !currentFormats[key]) {
+            quill.format(key, pendingFormats[key]);
+          }
+        });
+      }
+    }
+  });
 };
 
 // 设置标题折叠功能
@@ -1027,7 +1068,7 @@ const regenerateAI = async () => {
 .ql-editor.ql-blank::before {
   color: #9ca3af;
   font-style: normal;
-  left: 20px;
+  left: 62px;
   right: 20px;
   pointer-events: none;
 }
