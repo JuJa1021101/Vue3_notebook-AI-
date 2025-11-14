@@ -5,6 +5,8 @@
 const AIService = require('../../services/ai/aiService');
 const { sequelize } = require('../../config/database');
 const { getUserLimits, formatLimitInfo } = require('../../config/aiLimits');
+const { validateContent, handleAIRequest } = require('../../utils/aiControllerHelper');
+const logger = require('../../utils/logger');
 
 const aiService = new AIService();
 
@@ -13,218 +15,87 @@ class AIController {
    * 智能续写
    */
   async continue(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
+    const { content, options = {} } = ctx.request.body;
 
-      // 验证参数
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (content.length > 10000) {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容过长，请控制在 10000 字以内'
-        };
-        return;
-      }
-
-      // 检查是否使用流式输出
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'continue', content, options, ctx);
-      } else {
-        const result = await aiService.continue(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.continue error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    // 验证参数
+    const validationError = validateContent(content);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+
+    await handleAIRequest(ctx, aiService, 'continue', content, options);
   }
 
   /**
    * 格式优化
    */
   async format(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
-
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'format', content, options, ctx);
-      } else {
-        const result = await aiService.format(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.format error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    const { content, options = {} } = ctx.request.body;
+    const validationError = validateContent(content);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+    await handleAIRequest(ctx, aiService, 'format', content, options);
   }
 
   /**
    * 排版美化
    */
   async beautify(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
-
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'beautify', content, options, ctx);
-      } else {
-        const result = await aiService.beautify(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.beautify error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    const { content, options = {} } = ctx.request.body;
+    const validationError = validateContent(content);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+    await handleAIRequest(ctx, aiService, 'beautify', content, options);
   }
 
   /**
    * 内容润色
    */
   async polish(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
-
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'polish', content, options, ctx);
-      } else {
-        const result = await aiService.polish(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.polish error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    const { content, options = {} } = ctx.request.body;
+    const validationError = validateContent(content);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+    await handleAIRequest(ctx, aiService, 'polish', content, options);
   }
 
   /**
    * 生成摘要
    */
   async summarize(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
-
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (content.length < 100) {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容太短，无需生成摘要'
-        };
-        return;
-      }
-
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'summarize', content, options, ctx);
-      } else {
-        const result = await aiService.summarize(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.summarize error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    const { content, options = {} } = ctx.request.body;
+    const validationError = validateContent(content, 100);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+    await handleAIRequest(ctx, aiService, 'summarize', content, options);
   }
 
   /**
    * 内容扩写
    */
   async expand(ctx) {
-    try {
-      const { content, options = {} } = ctx.request.body;
-      const userId = ctx.state.user.id;
-
-      if (!content || typeof content !== 'string') {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '内容不能为空'
-        };
-        return;
-      }
-
-      if (options.streamEnabled) {
-        await aiService.processAIStream(userId, 'expand', content, options, ctx);
-      } else {
-        const result = await aiService.expand(userId, content, options);
-        ctx.body = result;
-      }
-    } catch (error) {
-      console.error('AIController.expand error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '服务器错误'
-      };
+    const { content, options = {} } = ctx.request.body;
+    const validationError = validateContent(content);
+    if (validationError) {
+      ctx.status = validationError.status;
+      ctx.body = validationError.body;
+      return;
     }
+    await handleAIRequest(ctx, aiService, 'expand', content, options);
   }
 
   /**
@@ -233,10 +104,10 @@ class AIController {
   async getSettings(ctx) {
     try {
       const userId = ctx.state.user.id;
-      console.log('📋 获取 AI 设置，用户ID:', userId);
+      logger.debug('获取 AI 设置，用户ID:', userId);
 
       if (!userId) {
-        console.error('❌ 用户ID为空');
+        logger.error('用户ID为空');
         ctx.status = 401;
         ctx.body = {
           success: false,
@@ -246,15 +117,14 @@ class AIController {
       }
 
       const settings = await aiService.getUserSettings(userId);
-      console.log('✅ 成功获取设置:', settings);
+      logger.debug('成功获取设置:', settings);
 
       ctx.body = {
         success: true,
         data: settings
       };
     } catch (error) {
-      console.error('❌ AIController.getSettings error:', error);
-      console.error('❌ 错误堆栈:', error.stack);
+      logger.error('AIController.getSettings error:', error);
       ctx.status = 500;
       ctx.body = {
         success: false,
@@ -269,10 +139,10 @@ class AIController {
   async updateSettings(ctx) {
     try {
       const userId = ctx.state.user.id;
-      console.log('💾 更新 AI 设置，用户ID:', userId);
+      logger.debug('更新 AI 设置，用户ID:', userId);
 
       if (!userId) {
-        console.error('❌ 用户ID为空');
+        logger.error('用户ID为空');
         ctx.status = 401;
         ctx.body = {
           success: false,
@@ -315,11 +185,7 @@ class AIController {
         return;
       }
 
-      // 打印接收到的数据
-      console.log('📥 接收到的设置数据:', settings);
-      console.log('📥 数据类型:', typeof settings);
-      console.log('📥 所有键:', Object.keys(settings));
-      console.log('👤 用户 ID:', userId);
+      logger.debug('接收到的设置数据:', settings);
 
       // 首先检查用户是否有设置记录
       const existingSettings = await sequelize.query(
@@ -330,11 +196,9 @@ class AIController {
         }
       );
 
-      console.log('🔍 现有设置记录:', existingSettings);
-
       // 如果没有记录，先创建默认记录
       if (!existingSettings || existingSettings.length === 0) {
-        console.log('⚠️ 用户没有设置记录，创建默认记录');
+        logger.info('用户没有设置记录，创建默认记录');
         await sequelize.query(
           `INSERT INTO ai_settings (user_id, provider, model, default_length, default_style, default_language, stream_enabled)
            VALUES (?, 'siliconflow', 'Qwen/Qwen2.5-7B-Instruct', 'medium', 'professional', 'zh', TRUE)`,
@@ -344,53 +208,34 @@ class AIController {
         );
       }
 
-      // 更新设置 - 简化逻辑，直接更新所有提供的字段
+      // 更新设置
       const updateFields = [];
       const values = [];
 
-      // default_length
       if ('default_length' in settings && settings.default_length) {
-        console.log('✅ 添加 default_length:', settings.default_length);
         updateFields.push('default_length = ?');
         values.push(settings.default_length);
       }
 
-      // default_style
       if ('default_style' in settings && settings.default_style) {
-        console.log('✅ 添加 default_style:', settings.default_style);
         updateFields.push('default_style = ?');
         values.push(settings.default_style);
       }
 
-      // default_language
       if ('default_language' in settings && settings.default_language) {
-        console.log('✅ 添加 default_language:', settings.default_language);
         updateFields.push('default_language = ?');
         values.push(settings.default_language);
       }
 
-      // stream_enabled - 特殊处理，因为可能是 false
       if ('stream_enabled' in settings) {
-        console.log('✅ 添加 stream_enabled:', settings.stream_enabled, '类型:', typeof settings.stream_enabled);
         updateFields.push('stream_enabled = ?');
         values.push(settings.stream_enabled ? 1 : 0);
-      } else {
-        console.log('❌ stream_enabled 不在 settings 中');
       }
 
-      console.log('🔧 准备更新的字段:', updateFields);
-      console.log('📝 更新的值:', values);
-
       if (updateFields.length > 0) {
-        values.push(userId); // WHERE 条件的参数
+        values.push(userId);
 
-        console.log('🔧 执行 SQL 更新:', {
-          userId,
-          updateFields: updateFields.join(', '),
-          values
-        });
-
-        const result = await sequelize.query(
+        await sequelize.query(
           `UPDATE ai_settings SET ${updateFields.join(', ')} WHERE user_id = ?`,
           {
             replacements: values,
@@ -398,20 +243,7 @@ class AIController {
           }
         );
 
-        console.log('✅ SQL 更新结果:', result);
-
-        // 验证更新是否成功 - 查询更新后的数据
-        const updatedSettings = await sequelize.query(
-          'SELECT * FROM ai_settings WHERE user_id = ?',
-          {
-            replacements: [userId],
-            type: sequelize.QueryTypes.SELECT
-          }
-        );
-
-        console.log('✅ 更新后的设置:', updatedSettings[0]);
-      } else {
-        console.log('⚠️ 没有字段需要更新');
+        logger.debug('设置更新成功');
       }
 
       ctx.body = {
@@ -419,13 +251,7 @@ class AIController {
         message: '设置已更新'
       };
     } catch (error) {
-      console.error('❌ AIController.updateSettings error:', error);
-      console.error('❌ 错误堆栈:', error.stack);
-      console.error('❌ 错误详情:', {
-        name: error.name,
-        message: error.message,
-        code: error.code
-      });
+      logger.error('AIController.updateSettings error:', error);
       ctx.status = 500;
       ctx.body = {
         success: false,
@@ -500,13 +326,13 @@ class AIController {
             hourly: limits.hourly,
             daily: limits.daily
           },
-          limitInfo: limitInfo, // 新增：详细的限制信息
-          userTier: limits.tier, // 新增：用户等级
-          isUnlimited: limits.isUnlimited // 新增：是否无限制
+          limitInfo: limitInfo,
+          userTier: limits.tier,
+          isUnlimited: limits.isUnlimited
         }
       };
     } catch (error) {
-      console.error('AIController.getUsageStats error:', error);
+      logger.error('AIController.getUsageStats error:', error);
 
       // 返回默认值而不是错误，避免影响前端显示
       ctx.body = {

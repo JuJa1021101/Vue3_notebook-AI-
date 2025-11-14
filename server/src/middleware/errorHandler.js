@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const { sanitizeRequestBody } = require('../utils/sanitizer');
 
 const errorHandler = async (ctx, next) => {
   try {
@@ -6,7 +7,7 @@ const errorHandler = async (ctx, next) => {
   } catch (err) {
     // 特殊处理 Multer 错误
     if (err.name === 'MulterError' || err.message?.includes('不支持的文件类型')) {
-      console.error('❌ Multer 错误:', err.message);
+      logger.error('Multer 错误:', err.message);
       ctx.status = 400;
       ctx.body = {
         code: 400,
@@ -16,13 +17,14 @@ const errorHandler = async (ctx, next) => {
       return;
     }
 
-    // 记录错误日志
+    // 记录错误日志（过滤敏感信息）
     logger.error('API Error:', {
       error: err.message,
-      stack: err.stack,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
       url: ctx.url,
       method: ctx.method,
       ip: ctx.ip,
+      body: sanitizeRequestBody(ctx.request.body),
       userAgent: ctx.headers['user-agent']
     });
 

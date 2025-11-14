@@ -19,6 +19,7 @@ import {
   type GetNotesParams,
   type NotesResponse,
 } from '@/api/note';
+import cache from '@/utils/cache';
 
 interface NotesState {
   // 笔记列表
@@ -120,6 +121,22 @@ export const useNotesStore = defineStore('notes', {
           limit: params?.limit || this.pagination.limit,
         };
 
+        // 尝试从缓存获取
+        const cacheKey = `notes:${JSON.stringify(queryParams)}`;
+        const cachedData = cache.get<NotesResponse>(cacheKey);
+
+        if (cachedData) {
+          this.notes = cachedData.notes;
+          this.pagination = {
+            page: cachedData.page,
+            limit: cachedData.limit,
+            total: cachedData.total,
+            totalPages: cachedData.totalPages,
+          };
+          this.loading = false;
+          return;
+        }
+
         const response = await getNotes(queryParams);
 
         if (response.data.success) {
@@ -131,6 +148,9 @@ export const useNotesStore = defineStore('notes', {
             total: data.total,
             totalPages: data.totalPages,
           };
+
+          // 存入缓存（2分钟）
+          cache.set(cacheKey, data, 2 * 60 * 1000);
         } else {
           this.error = response.data.message || '获取笔记列表失败';
         }
@@ -216,6 +236,10 @@ export const useNotesStore = defineStore('notes', {
           const newNote = response.data.data as Note;
           this.notes.unshift(newNote);
           this.pagination.total += 1;
+
+          // 清除笔记列表缓存
+          this.clearNotesCache();
+
           return newNote;
         } else {
           this.error = response.data.message || '创建笔记失败';
@@ -456,6 +480,14 @@ export const useNotesStore = defineStore('notes', {
     },
 
     /**
+     * 清除笔记列表缓存
+     */
+    clearNotesCache() {
+      // 清除所有以 'notes:' 开头的缓存
+      cache.clear();
+    },
+
+    /**
      * 重置状态
      */
     reset() {
@@ -471,6 +503,7 @@ export const useNotesStore = defineStore('notes', {
       this.loading = false;
       this.error = null;
       this.clearFilters();
+      this.clearNotesCache();
     },
   },
 });

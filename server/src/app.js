@@ -20,9 +20,6 @@ const aiRoutes = require('./routes/ai/aiRoutes');
 const app = new Koa();
 const PORT = process.env.PORT || 3000;
 
-// 全局错误处理
-app.use(errorHandler);
-
 // 中间件配置
 app.use(cors());
 
@@ -38,10 +35,10 @@ app.use(serve(path.join(__dirname, '../uploads')));
 
 // 基础路由 - 必须在其他路由之前
 app.use(async (ctx, next) => {
-  console.log(`📍 收到请求: ${ctx.method} ${ctx.path}`);
+  logger.debug(`收到请求: ${ctx.method} ${ctx.path}`);
 
   if (ctx.path === '/') {
-    console.log('✅ 匹配根路径，返回API信息');
+    logger.debug('匹配根路径，返回API信息');
     ctx.status = 200;
     ctx.body = {
       code: 200,
@@ -105,7 +102,6 @@ app.use(async (ctx, next) => {
     };
     return; // 直接返回，不继续执行
   } else {
-    console.log('➡️ 继续处理其他路由');
     await next();
   }
 });
@@ -137,9 +133,11 @@ app.use(async (ctx) => {
   };
 });
 
+// 全局错误处理（必须放在最后）
+app.use(errorHandler);
+
 app.listen(PORT, async () => {
   logger.info(`Server running on port ${PORT}`);
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
 
   // 确保上传目录存在
   ensureUploadDir();
@@ -154,18 +152,13 @@ app.listen(PORT, async () => {
     const qwenService = new QwenService();
     const isConnected = await qwenService.testConnection();
     if (isConnected) {
-      logger.info('✅ AI Service (Qwen) connected successfully');
-      console.log('✅ AI Service (Qwen) connected successfully');
+      logger.info('AI Service (Qwen) connected successfully');
     } else {
-      logger.warn('⚠️ AI Service connection failed');
-      console.log('⚠️ AI Service connection failed');
+      logger.warn('AI Service connection failed');
     }
   } catch (error) {
-    logger.error('❌ AI Service initialization error:', error.message);
-    console.log('❌ AI Service initialization error:', error.message);
+    logger.error('AI Service initialization error:', error.message);
   }
 });
-
-module.exports = app;
 
 module.exports = app;

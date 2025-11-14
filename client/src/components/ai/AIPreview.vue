@@ -96,7 +96,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue";
 import { useAIStore } from "@/stores/ai";
-import { marked } from "marked";
+import { parseMarkdown } from "@/utils/markdown";
 
 const aiStore = useAIStore();
 
@@ -119,7 +119,7 @@ const parsedMarkdown = computed(() => {
   if (!shouldRenderMarkdown.value || !processedContent.value) {
     return "";
   }
-  return marked(processedContent.value);
+  return parseMarkdown(processedContent.value);
 });
 
 // 监听 processedContent 的变化，自动滚动到底部

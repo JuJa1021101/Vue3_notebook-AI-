@@ -1,6 +1,7 @@
 const path = require('path');
 const multer = require('koa-multer');
 const fs = require('fs');
+const logger = require('../utils/logger');
 
 // 上传配置
 const UPLOAD_PATH = process.env.UPLOAD_PATH || './uploads';
@@ -142,18 +143,38 @@ const isExtensionAllowed = (filename) => {
   return getFileTypeCategoryByExtension(filename) !== null;
 };
 
+// 危险文件扩展名黑名单（可执行文件）
+const DANGEROUS_EXTENSIONS = [
+  '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js', '.jar',
+  '.msi', '.app', '.deb', '.rpm', '.dmg', '.pkg', '.sh', '.bash', '.ps1',
+  '.php', '.asp', '.aspx', '.jsp', '.cgi', '.pl', '.py', '.rb'
+];
+
+// 检查是否为危险文件
+const isDangerousFile = (filename) => {
+  const ext = path.extname(filename).toLowerCase();
+  return DANGEROUS_EXTENSIONS.includes(ext);
+};
+
 // 文件过滤器（所有支持的类型）
 const attachmentFilter = (req, file, cb) => {
   const allowedTypes = getAllAllowedTypes();
   const ext = path.extname(file.originalname).toLowerCase();
 
+  // 安全检查：拒绝危险文件类型
+  if (isDangerousFile(file.originalname)) {
+    const errorMsg = `禁止上传可执行文件: ${ext}`;
+    logger.error('文件类型安全检查失败:', errorMsg);
+    cb(new Error(errorMsg), false);
+    return;
+  }
+
   // 详细日志：记录文件信息
-  console.log('🔍 附件过滤器检查:', {
+  logger.debug('附件过滤器检查:', {
     originalname: file.originalname,
     mimetype: file.mimetype,
     extension: ext,
-    size: file.size,
-    encoding: file.encoding
+    size: file.size
   });
 
   // 优先检查 MIME 类型
@@ -161,17 +182,16 @@ const attachmentFilter = (req, file, cb) => {
   // 其次检查文件扩展名（处理中文文件名或 MIME 类型识别错误的情况）
   const extensionAllowed = isExtensionAllowed(file.originalname);
 
-  console.log('📋 MIME 类型检查:', mimeTypeAllowed ? '✅ 通过' : '❌ 未通过');
-  console.log('📋 扩展名检查:', extensionAllowed ? '✅ 通过' : '❌ 未通过');
+  logger.debug('MIME 类型检查:', mimeTypeAllowed ? '通过' : '未通过');
+  logger.debug('扩展名检查:', extensionAllowed ? '通过' : '未通过');
 
   // 只要 MIME 类型或扩展名有一个匹配就允许上传
   if (mimeTypeAllowed || extensionAllowed) {
-    console.log('✅ 文件类型验证通过');
+    logger.debug('文件类型验证通过');
     cb(null, true);
   } else {
     const errorMsg = `不支持的文件类型: ${file.mimetype}, 扩展名: ${ext}`;
-    console.error('❌ 文件类型验证失败:', errorMsg);
-    console.log('💡 支持的扩展名: .md, .pdf, .doc, .docx, .txt, .jpg, .png, .mp4, .mp3, .zip 等');
+    logger.error('文件类型验证失败:', errorMsg);
     cb(new Error(errorMsg), false);
   }
 };
@@ -201,10 +221,12 @@ module.exports = {
   MAX_FILE_SIZE,
   ALLOWED_IMAGE_TYPES,
   ALLOWED_FILE_TYPES,
+  DANGEROUS_EXTENSIONS,
   ensureUploadDir,
   generateFilename,
   getFileTypeCategoryByExtension,
   isExtensionAllowed,
   getFileTypeCategory,
-  getAllAllowedTypes
+  getAllAllowedTypes,
+  isDangerousFile
 };
