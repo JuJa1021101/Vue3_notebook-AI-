@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 // 创建axios实例
 const request: AxiosInstance = axios.create({
   baseURL: '/api',
-  timeout: 120000, // 2分钟超时，适配AI请求
+  timeout: 90000, // 90秒超时，与后端AI服务保持一致
   headers: {
     'Content-Type': 'application/json'
   }
