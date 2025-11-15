@@ -197,7 +197,7 @@ onMounted(async () => {
   padding: 20px;
 
   .modal-content {
-    border-radius: 12px;
+    border-radius: 10px;
     width: 100%;
     max-width: 500px;
     max-height: 90vh;
@@ -247,8 +247,8 @@ onMounted(async () => {
         .spinner {
           width: 40px;
           height: 40px;
-          border: 4px solid;
-          border-top: 4px solid #667eea;
+          border: 3px solid;
+          border-top: 3px solid #5b7ff2;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -280,7 +280,7 @@ onMounted(async () => {
 
           &:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #5b7ff2;
           }
         }
 
@@ -327,12 +327,12 @@ onMounted(async () => {
         }
 
         &.btn-primary {
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          background: linear-gradient(120deg, #5b7ff2 0%, #4a68d6 100%);
           color: white;
 
           &:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(91, 127, 242, 0.3);
           }
 
           &:disabled {

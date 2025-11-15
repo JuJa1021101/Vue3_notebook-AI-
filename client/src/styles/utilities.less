@@ -1,0 +1,149 @@
+/* 自定义工具类 - 替代 Tailwind 标准色值 */
+
+/* 背景色工具类 */
+.bg-primary {
+  background-color: var(--theme-color) !important;
+}
+
+.bg-primary-hover:hover {
+  background-color: var(--theme-color-hover) !important;
+}
+
+.bg-accent {
+  background-color: var(--accent-color) !important;
+}
+
+.bg-success {
+  background-color: var(--success-color) !important;
+}
+
+/* 文字颜色工具类 */
+.text-primary {
+  color: var(--theme-color) !important;
+}
+
+.text-primary-hover:hover {
+  color: var(--theme-color-hover) !important;
+}
+
+.text-accent {
+  color: var(--accent-color) !important;
+}
+
+.text-success {
+  color: var(--success-color) !important;
+}
+
+/* 边框颜色工具类 */
+.border-primary {
+  border-color: var(--theme-color) !important;
+}
+
+.border-accent {
+  border-color: var(--accent-color) !important;
+}
+
+/* 圆角工具类 - 优化后的值 */
+.rounded-card {
+  border-radius: 10px !important;
+}
+
+.rounded-button {
+  border-radius: 8px !important;
+}
+
+.rounded-input {
+  border-radius: 6px !important;
+}
+
+/* 阴影工具类 - 更自然的阴影 */
+.shadow-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.shadow-card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.shadow-float {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.shadow-modal {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* 按钮样式 - 统一的主按钮样式 */
+.btn-primary {
+  background: linear-gradient(120deg, var(--theme-color) 0%, var(--theme-color-hover) 100%) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(91, 127, 242, 0.3) !important;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* 加载动画 - 使用品牌色 */
+.spinner-primary {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--theme-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 渐变背景 - 优化角度 */
+.gradient-primary {
+  background: linear-gradient(120deg, var(--theme-color) 0%, var(--theme-color-hover) 100%) !important;
+}
+
+.gradient-accent {
+  background: linear-gradient(120deg, var(--theme-color) 0%, var(--accent-color) 100%) !important;
+}
+
+/* 悬停效果 - 更克制的动画 */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式支持 - 降低饱和度 */
+.dark {
+  .text-primary {
+    color: #8199f8 !important;
+  }
+
+  .bg-primary {
+    background-color: #4a68d6 !important;
+  }
+
+  .border-primary {
+    border-color: #4a68d6 !important;
+  }
+
+  /* 暗黑模式下不要用鲜艳的 blue-600 */
+  .bg-blue-600 {
+    background-color: #4a68d6 !important;
+  }
+
+  .text-blue-600 {
+    color: #8199f8 !important;
+  }
+}

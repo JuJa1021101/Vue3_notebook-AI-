@@ -84,9 +84,9 @@
         主题色
       </h3>
       <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-card border border-gray-100 dark:border-gray-700 p-5"
       >
-        <div class="grid grid-cols-5 gap-3">
+        <div class="flex flex-wrap gap-3 justify-center">
           <div
             v-for="color in themeColors"
             :key="color.value"

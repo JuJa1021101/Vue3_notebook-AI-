@@ -27,7 +27,7 @@
             >
               <i
                 :class="action.icon"
-                class="text-blue-600 dark:text-blue-400"
+                class="text-primary-500 dark:text-primary-400"
               ></i>
               <div class="action-info">
                 <span class="action-name text-gray-900 dark:text-white">{{
@@ -49,7 +49,7 @@
               <span class="stat-label text-gray-600 dark:text-gray-300"
                 >今日使用</span
               >
-              <span class="stat-value text-blue-600 dark:text-blue-400"
+              <span class="stat-value text-primary-500 dark:text-primary-400"
                 >{{ remainingQuota.daily }} / {{ stats.limits.daily }}</span
               >
             </div>
@@ -57,7 +57,7 @@
               <span class="stat-label text-gray-600 dark:text-gray-300"
                 >本小时</span
               >
-              <span class="stat-value text-blue-600 dark:text-blue-400"
+              <span class="stat-value text-primary-500 dark:text-primary-400"
                 >{{ remainingQuota.hourly }} / {{ stats.limits.hourly }}</span
               >
             </div>
@@ -103,41 +103,31 @@ const canUseAI = computed(() => aiStore.canUseAI);
 const stats = computed(() => aiStore.stats);
 const remainingQuota = computed(() => aiStore.remainingQuota);
 
+// 合并相似功能，减少选择困难
 const actions = [
   {
     id: "continue",
-    name: "智能续写",
-    icon: "fas fa-pen-fancy",
+    name: "续写",
+    icon: "fas fa-pen",
     description: "根据上下文继续写作",
   },
   {
     id: "polish",
-    name: "内容润色",
-    icon: "fas fa-wand-magic-sparkles",
-    description: "优化语言表达",
-  },
-  {
-    id: "format",
-    name: "格式优化",
-    icon: "fas fa-align-left",
-    description: "规范文本格式",
-  },
-  {
-    id: "beautify",
-    name: "排版美化",
-    icon: "fas fa-palette",
-    description: "优化段落结构",
+    name: "润色+排版",
+    icon: "fas fa-edit",
+    description: "优化文本",
+    combined: true, // 标记为合并功能
   },
   {
     id: "summarize",
-    name: "生成摘要",
-    icon: "fas fa-list-ul",
+    name: "摘要",
+    icon: "fas fa-list",
     description: "提取核心要点",
   },
   {
     id: "expand",
-    name: "内容扩写",
-    icon: "fas fa-expand-arrows-alt",
+    name: "扩写",
+    icon: "fas fa-expand",
     description: "扩展详细内容",
   },
 ];
@@ -165,8 +155,8 @@ onMounted(() => {
   right: 30px;
   bottom: 170px;
   width: 320px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 998;
   overflow: hidden;
 
@@ -175,9 +165,11 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background-image: url("/background.jpg");
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(120deg, #5b7ff2 0%, #d95deb 100%);
+  }
+
+  .dark .panel-header {
+    background: linear-gradient(120deg, #374151 0%, #1f2937 100%);
     background-repeat: no-repeat;
     color: white;
 
@@ -225,7 +217,8 @@ onMounted(() => {
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: background-color 0.15s ease-out, transform 0.2s ease-out,
+          box-shadow 0.2s ease-out;
         text-align: left;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
@@ -252,9 +245,9 @@ onMounted(() => {
         }
 
         &:hover:not(:disabled) {
-          @apply bg-blue-50 dark:bg-blue-900/20;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          @apply bg-primary-50 dark:bg-primary-900/20;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         }
 
         &:disabled {
@@ -293,7 +286,8 @@ onMounted(() => {
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: background-color 0.15s ease-out, transform 0.2s ease-out,
+        box-shadow 0.2s ease-out;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -301,9 +295,9 @@ onMounted(() => {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
       &:hover {
-        @apply bg-gray-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        @apply bg-gray-50 dark:bg-gray-700 text-primary-500 dark:text-primary-400;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
       }
     }
   }
@@ -323,9 +317,9 @@ onMounted(() => {
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid;
+      border: 3px solid;
       @apply border-gray-200 dark:border-gray-700;
-      border-top: 4px solid #667eea;
+      border-top: 3px solid #5b7ff2;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }

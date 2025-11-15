@@ -78,6 +78,24 @@ const showLogoutDialog = ref(false);
 
 const settingsOptions = ref([
   {
+    name: "notification",
+    title: "通知设置",
+    icon: "fas fa-bell",
+    developing: true,
+  },
+  {
+    name: "privacy",
+    title: "隐私设置",
+    icon: "fas fa-shield-alt",
+    developing: true,
+  },
+  {
+    name: "sync",
+    title: "数据同步",
+    icon: "fas fa-sync",
+    developing: true,
+  },
+  {
     name: "help",
     title: "帮助与反馈",
     icon: "fas fa-question-circle",
@@ -95,6 +113,15 @@ const settingsOptions = ref([
 ]);
 
 const handleOptionClick = (option: string) => {
+  // 检查是否是开发中的功能
+  const selectedOption = settingsOptions.value.find(
+    (item) => item.name === option
+  );
+  if (selectedOption?.developing) {
+    toast.info(`${selectedOption.title}功能开发中...`);
+    return;
+  }
+
   switch (option) {
     case "help":
       router.push("/main/profile/help");

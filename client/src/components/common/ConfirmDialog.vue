@@ -13,7 +13,7 @@
 
         <!-- 弹窗内容 -->
         <div
-          class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden"
+          class="relative bg-white rounded-xl shadow-lg w-full max-w-sm overflow-hidden"
         >
           <!-- 图标 -->
           <div v-if="showIcon" class="flex justify-center pt-8 pb-4">

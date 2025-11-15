@@ -32,47 +32,50 @@
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="px-4 py-4">
-      <div class="grid grid-cols-4 gap-3">
+    <!-- Quick Actions - 使用 grid-cols-2 替代 grid-cols-4 -->
+    <div class="px-5 py-5">
+      <div class="grid grid-cols-2 gap-3">
         <div
-          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm cursor-pointer hover:shadow-md transition-all"
+          class="bg-white dark:bg-gray-800 p-3 rounded-lg text-center shadow-card cursor-pointer hover-lift transition-all"
           @click="router.push('/main/notes/new')"
         >
           <div
-            class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2"
+            class="w-10 h-10 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-2"
           >
-            <i class="fas fa-edit text-blue-600"></i>
+            <i class="fas fa-edit text-primary-500"></i>
           </div>
           <span class="text-xs text-gray-600 dark:text-gray-300">快速记录</span>
         </div>
         <div
-          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm transition-colors"
+          class="bg-white dark:bg-gray-800 p-3 rounded-lg text-center shadow-card cursor-pointer transition-colors"
+          @click="toast.info('拍照笔记功能开发中...')"
         >
           <div
-            class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-2"
+            class="w-10 h-10 bg-success-50 dark:bg-success-900/20 rounded-full flex items-center justify-center mx-auto mb-2"
           >
-            <i class="fas fa-camera text-green-600"></i>
+            <i class="fas fa-camera text-success-500"></i>
           </div>
           <span class="text-xs text-gray-600 dark:text-gray-300">拍照笔记</span>
         </div>
         <div
-          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm transition-colors"
+          class="bg-white dark:bg-gray-800 p-3 rounded-lg text-center shadow-card cursor-pointer transition-colors"
+          @click="toast.info('语音记录功能开发中...')"
         >
           <div
-            class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-2"
+            class="w-10 h-10 bg-accent-50 dark:bg-accent-900/20 rounded-full flex items-center justify-center mx-auto mb-2"
           >
-            <i class="fas fa-microphone text-purple-600"></i>
+            <i class="fas fa-microphone text-accent-500"></i>
           </div>
           <span class="text-xs text-gray-600 dark:text-gray-300">语音记录</span>
         </div>
         <div
-          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm transition-colors"
+          class="bg-white dark:bg-gray-800 p-3 rounded-lg text-center shadow-card cursor-pointer transition-colors"
+          @click="toast.info('待办清单功能开发中...')"
         >
           <div
-            class="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-2"
+            class="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-2"
           >
-            <i class="fas fa-list text-orange-600"></i>
+            <i class="fas fa-list text-orange-500"></i>
           </div>
           <span class="text-xs text-gray-600 dark:text-gray-300">待办清单</span>
         </div>
@@ -93,29 +96,72 @@
         </button>
       </div>
 
-      <!-- Note Cards -->
-      <div v-if="loading" class="text-center py-8">
+      <!-- Note Cards - 骨架屏 -->
+      <div v-if="loading" class="space-y-3">
         <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"
-        ></div>
-        <p class="text-gray-500 dark:text-gray-400 mt-2">加载中...</p>
+          v-for="i in 3"
+          :key="i"
+          class="bg-white dark:bg-gray-800 rounded-lg p-4 animate-pulse"
+        >
+          <div
+            class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"
+          ></div>
+          <div
+            class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"
+          ></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+        </div>
       </div>
 
       <div v-else-if="recentNotes.length === 0" class="text-center py-8">
-        <div
-          class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors"
-        >
-          <i
-            class="fas fa-sticky-note text-2xl text-gray-400 dark:text-gray-500"
-          ></i>
+        <div class="empty-illustration mb-4">
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 120 120"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="20"
+              y="30"
+              width="80"
+              height="60"
+              rx="4"
+              fill="#E5E7EB"
+              opacity="0.5"
+            />
+            <rect x="30" y="40" width="60" height="4" rx="2" fill="#9CA3AF" />
+            <rect x="30" y="50" width="50" height="4" rx="2" fill="#9CA3AF" />
+            <rect x="30" y="60" width="55" height="4" rx="2" fill="#9CA3AF" />
+          </svg>
         </div>
-        <p class="text-gray-500 dark:text-gray-400 mb-4">还没有笔记</p>
-        <button
-          @click="$router.push('/main/notes/new')"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
-        >
-          创建第一篇笔记
-        </button>
+        <p class="text-gray-600 dark:text-gray-400 mb-2 font-medium">
+          你的第一篇笔记，从这里开始
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">
+          试试这些笔记模板
+        </p>
+        <div class="flex flex-col gap-2 max-w-xs mx-auto">
+          <button
+            @click="createNoteWithTemplate('日记')"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:border-primary-500 transition-colors"
+          >
+            📝 今天的日记
+          </button>
+          <button
+            @click="createNoteWithTemplate('待办')"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:border-primary-500 transition-colors"
+          >
+            ✅ 待办清单
+          </button>
+          <button
+            @click="createNoteWithTemplate('想法')"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:border-primary-500 transition-colors"
+          >
+            💡 灵感记录
+          </button>
+        </div>
       </div>
 
       <div v-else class="space-y-3">
@@ -141,15 +187,20 @@
       >
         <div class="text-center mb-4">
           <div
-            class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-3"
+            class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-3"
           >
-            <i class="fas fa-trash text-red-600 text-xl"></i>
+            <i
+              class="fas fa-trash text-orange-600 dark:text-orange-400 text-xl"
+            ></i>
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             删除笔记
           </h3>
           <p class="text-sm text-gray-600 dark:text-gray-300">
-            确定要删除笔记"{{ noteToDelete?.title }}"吗？
+            删除后可以在回收站找回
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            "{{ noteToDelete?.title }}"
           </p>
         </div>
         <div class="flex space-x-3">
@@ -171,24 +222,21 @@
       </div>
     </div>
 
-    <!-- Statistics -->
-    <div class="px-4 py-6">
-      <div
-        class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 text-white"
-      >
-        <h3 class="font-semibold mb-2">本周统计</h3>
-        <div class="grid grid-cols-3 gap-4">
-          <div class="text-center">
-            <div class="text-2xl font-bold">8</div>
-            <div class="text-xs opacity-80">新增笔记</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold">2.5h</div>
-            <div class="text-xs opacity-80">记录时长</div>
-          </div>
-          <div class="text-center">
-            <div class="text-2xl font-bold">5</div>
-            <div class="text-xs opacity-80">分类数量</div>
+    <!-- Statistics - 只在有数据时显示 -->
+    <div v-if="totalNotes > 3" class="px-4 py-6">
+      <div class="stats-card rounded-xl p-4 text-white">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-semibold">+3 vs 上周</h3>
+          <span class="text-xs opacity-80">本周新增</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <div class="text-3xl font-bold">{{ weeklyStats.newNotes }}</div>
+          <div class="text-sm opacity-80">篇笔记</div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-white/20">
+          <div class="flex justify-between text-sm">
+            <span class="opacity-80">超过 68% 的用户</span>
+            <span class="font-medium">🎉 继续加油</span>
           </div>
         </div>
       </div>
@@ -214,6 +262,12 @@ const totalNotes = ref(0);
 const showDeleteConfirm = ref(false);
 const noteToDelete = ref<Note | null>(null);
 const deleting = ref(false);
+
+// 周统计数据
+const weeklyStats = ref({
+  newNotes: 0,
+  percentile: 68, // 超过的用户百分比
+});
 
 // 计算用户头像
 const userAvatar = computed(() => {
@@ -321,6 +375,32 @@ const handleAvatarError = (event: Event) => {
   console.warn("用户头像加载失败，使用默认头像");
 };
 
+// 使用模板创建笔记
+const createNoteWithTemplate = (template: string) => {
+  const templates: Record<string, { title: string; content: string }> = {
+    日记: {
+      title: `${new Date().toLocaleDateString()} 的日记`,
+      content: "# 今天的心情\n\n# 今天做了什么\n\n# 明天的计划\n\n",
+    },
+    待办: {
+      title: "待办清单",
+      content:
+        "## 今日待办\n\n- [ ] \n- [ ] \n- [ ] \n\n## 本周计划\n\n- [ ] \n- [ ] \n",
+    },
+    想法: {
+      title: "灵感记录",
+      content: "## 💡 想法\n\n\n\n## 📝 详细说明\n\n\n\n## 🎯 下一步\n\n",
+    },
+  };
+
+  const templateData = templates[template];
+  if (templateData) {
+    // 将模板数据存储到 sessionStorage，在新建页面读取
+    sessionStorage.setItem("noteTemplate", JSON.stringify(templateData));
+  }
+  router.push("/main/notes/new");
+};
+
 // 显示删除确认对话框
 const showDeleteMenu = (note: Note) => {
   noteToDelete.value = note;
@@ -365,3 +445,40 @@ const confirmDelete = async () => {
   }
 };
 </script>
+
+<style scoped>
+.stats-card {
+  background: url("/background.jpg") center/cover no-repeat;
+  position: relative;
+}
+
+.stats-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(91, 127, 242, 0.85) 0%,
+    rgba(217, 93, 235, 0.85) 100%
+  );
+  border-radius: 0.75rem;
+  z-index: 0;
+}
+
+.stats-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 暗黑模式下调整遮罩 */
+.dark .stats-card::before {
+  background: linear-gradient(
+    120deg,
+    rgba(91, 127, 242, 0.7) 0%,
+    rgba(217, 93, 235, 0.7) 100%
+  );
+}
+</style>

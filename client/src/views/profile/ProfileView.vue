@@ -30,13 +30,13 @@
         </button>
       </div>
 
-      <!-- Stats -->
-      <div class="grid grid-cols-3 gap-4">
+      <!-- Stats - 使用 flex 布局替代均分网格 -->
+      <div class="flex justify-around">
         <div class="text-center">
           <div class="text-2xl font-bold">{{ userStats.totalNotes }}</div>
           <div class="text-white/80 text-xs">笔记总数</div>
         </div>
-        <div class="text-center">
+        <div class="text-center border-l border-r border-white/20 px-5">
           <div class="text-2xl font-bold">{{ userStats.totalCategories }}</div>
           <div class="text-white/80 text-xs">分类数量</div>
         </div>
@@ -47,14 +47,14 @@
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="px-4 py-4">
-      <div class="grid grid-cols-4 gap-3">
+    <!-- Quick Actions - 使用 grid-cols-2 替代 grid-cols-4 -->
+    <div class="px-5 py-5">
+      <div class="grid grid-cols-2 gap-3">
         <div
           v-for="action in quickActions"
           :key="action.name"
           @click="handleQuickAction(action.name)"
-          class="bg-white dark:bg-gray-800 p-3 rounded-xl text-center shadow-sm cursor-pointer transition-colors"
+          class="bg-white dark:bg-gray-800 p-3 rounded-lg text-center shadow-card cursor-pointer hover-lift transition-colors"
         >
           <div
             class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
@@ -111,9 +111,9 @@
     </div>
 
     <!-- Storage Info -->
-    <div class="px-4 py-4">
+    <div class="px-5 py-5">
       <div
-        class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors"
+        class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-card border border-gray-100 dark:border-gray-700 transition-colors"
       >
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-medium text-gray-900 dark:text-white">存储空间</h3>
@@ -359,16 +359,15 @@ const achievement = ref({
 const handleQuickAction = (action: string) => {
   switch (action) {
     case "favorites":
-      router.push("/main/notes?filter=starred");
+      toast.info("收藏功能开发中...");
       break;
     case "recent":
-      router.push("/main/notes?filter=recent");
+      toast.info("最近功能开发中...");
       break;
     case "trash":
-      router.push("/main/notes/trash");
+      toast.info("回收站功能开发中...");
       break;
     case "export":
-      // TODO: 导出功能
       toast.info("导出功能开发中...");
       break;
   }
@@ -380,16 +379,16 @@ const handleMenuClick = (menu: string) => {
       router.push("/main/profile/account");
       break;
     case "sync":
-      router.push("/main/profile/sync");
+      toast.info("数据同步功能开发中...");
       break;
     case "theme":
       router.push("/main/profile/theme");
       break;
     case "privacy":
-      router.push("/main/profile/privacy");
+      toast.info("隐私安全功能开发中...");
       break;
     case "notification":
-      router.push("/main/profile/notification");
+      toast.info("通知设置功能开发中...");
       break;
   }
 };
@@ -405,9 +404,35 @@ const handleAvatarError = (event: Event) => {
 
 <style scoped>
 .gradient-bg {
-  background-image: url("/background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: url("/background.jpg") center/cover no-repeat;
+  position: relative;
+}
+
+.gradient-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(91, 127, 242, 0.8) 0%,
+    rgba(217, 93, 235, 0.8) 100%
+  );
+}
+
+.gradient-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 暗黑模式下使用纯色或微妙的渐变 */
+.dark .gradient-bg::before {
+  background: linear-gradient(
+    120deg,
+    rgba(45, 55, 72, 0.9) 0%,
+    rgba(26, 32, 44, 0.9) 100%
+  );
 }
 </style>

@@ -18,7 +18,7 @@
           :disabled="saving"
           class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
         >
-          {{ saving ? "保存中..." : "保存" }}
+          {{ saving ? "保存中..." : "完成" }}
         </button>
       </div>
     </div>
@@ -30,7 +30,7 @@
       <input
         type="text"
         v-model="noteForm.title"
-        placeholder="请输入标题..."
+        placeholder="今天写点什么？"
         class="w-full text-xl font-semibold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-none outline-none bg-transparent"
       />
     </div>
@@ -97,7 +97,7 @@
         :content="noteForm.content"
         contentType="html"
         :toolbar="toolbarOptions"
-        placeholder="开始记录你的想法..."
+        placeholder="从这里开始..."
         theme="snow"
         @update:content="noteForm.content = $event"
         @ready="onEditorReady"
@@ -127,63 +127,58 @@
       </div>
     </div>
 
-    <!-- Floating Action Menu -->
+    <!-- 智能悬浮球 - 可拖动的编辑工具 -->
     <div
-      class="fixed right-6 bottom-24 flex flex-col-reverse items-center z-20"
+      ref="floatingBall"
+      class="edit-tools-fab"
+      :class="{ active: showFloatingButtons, dragging: isDragging }"
+      :style="floatingBallStyle"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
+      @mousedown="handleMouseDown"
     >
-      <!-- 切换按钮（眼睛图标） - 在下面 -->
+      <!-- 主按钮 -->
       <button
-        @click="debouncedToggleFloatingButtons"
-        class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all hover:scale-110"
-        :title="showFloatingButtons ? '隐藏工具栏' : '显示工具栏'"
+        @click="toggleFloatingMenu"
+        class="fab-button"
+        :title="showFloatingButtons ? '收起工具' : '编辑工具'"
       >
-        <i
-          :class="showFloatingButtons ? 'fas fa-eye' : 'fas fa-eye-slash'"
-          class="text-lg transition-all"
-        ></i>
+        <i class="fas fa-bolt fab-icon"></i>
       </button>
 
-      <!-- 功能按钮组 - 在上面，向上展开 -->
-      <div class="flex flex-col-reverse items-center">
-        <!-- AI 助手按钮 -->
-        <transition name="slide-up-3">
-          <button
-            v-if="showFloatingButtons"
-            @click="toggleAIPanel"
-            class="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 mb-3"
-            :class="
-              aiStore.showPanel
-                ? 'bg-green-600'
-                : 'bg-green-500 hover:bg-green-600'
-            "
-            title="AI 助手"
-          >
-            <i class="fas fa-magic text-lg"></i>
+      <!-- 功能菜单 - 向上展开 -->
+      <transition name="slide-up-menu">
+        <div v-if="showFloatingButtons" class="tools-menu" @click.stop>
+          <button @click="handleToolClick(toggleAIPanel)" class="tool-item">
+            <div
+              class="tool-icon-wrapper"
+              style="background: rgba(91, 127, 242, 0.1)"
+            >
+              <i class="fas fa-magic" style="color: #5b7ff2"></i>
+            </div>
+            <span class="tool-label">AI 助手</span>
           </button>
-        </transition>
-        <!-- 附件按钮 -->
-        <transition name="slide-up-2">
-          <button
-            v-if="showFloatingButtons"
-            @click="insertAttachment"
-            class="w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 transition-all hover:scale-110 mb-3"
-            title="上传附件"
-          >
-            <i class="fas fa-paperclip text-lg"></i>
+          <button @click="handleToolClick(insertAttachment)" class="tool-item">
+            <div
+              class="tool-icon-wrapper"
+              style="background: rgba(249, 115, 22, 0.1)"
+            >
+              <i class="fas fa-paperclip" style="color: #f97316"></i>
+            </div>
+            <span class="tool-label">上传附件</span>
           </button>
-        </transition>
-        <!-- 录音按钮 -->
-        <transition name="slide-up-1">
-          <button
-            v-if="showFloatingButtons"
-            @click="insertAudio"
-            class="w-14 h-14 bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition-all hover:scale-110 mb-3"
-            title="录音"
-          >
-            <i class="fas fa-microphone text-lg"></i>
+          <button @click="handleToolClick(insertAudio)" class="tool-item">
+            <div
+              class="tool-icon-wrapper"
+              style="background: rgba(217, 93, 235, 0.1)"
+            >
+              <i class="fas fa-microphone" style="color: #d95deb"></i>
+            </div>
+            <span class="tool-label">录音</span>
           </button>
-        </transition>
-      </div>
+        </div>
+      </transition>
     </div>
 
     <!-- AI 助手面板 -->
@@ -262,7 +257,30 @@ const categories = ref<Category[]>([]);
 const attachments = ref<Attachment[]>([]);
 const showPreview = ref(false);
 const previewAttachment = ref<Attachment | null>(null);
-const showFloatingButtons = ref(true); // 控制浮动按钮显示/隐藏
+const showFloatingButtons = ref(false); // 控制浮动按钮显示/隐藏
+
+// 智能悬浮球相关状态
+const floatingBall = ref<HTMLElement | null>(null);
+const isDragging = ref(false);
+const ballPosition = ref({
+  x: window.innerWidth - 76, // 默认右侧，距离右边 20px
+  y: window.innerHeight - 183, // 默认位置，避开导航栏
+});
+
+// 拖动相关变量
+let startX = 0;
+let startY = 0;
+let startPosX = 0;
+let startPosY = 0;
+let hasMoved = false;
+
+// 安全区域配置（避开导航栏等）
+const safeArea = {
+  top: 60,
+  bottom: 100, // 导航栏高度 + 边距
+  left: 20,
+  right: 20,
+};
 
 // AI Store
 const aiStore = useAIStore();
@@ -282,7 +300,117 @@ const throttle = (fn: Function, delay: number) => {
   };
 };
 
-// 切换浮动按钮显示/隐藏
+// 计算悬浮球样式
+const floatingBallStyle = computed(() => ({
+  left: `${ballPosition.value.x}px`,
+  top: `${ballPosition.value.y}px`,
+}));
+
+// 切换浮动菜单显示/隐藏
+const toggleFloatingMenu = () => {
+  if (!hasMoved) {
+    showFloatingButtons.value = !showFloatingButtons.value;
+  }
+  hasMoved = false;
+};
+
+// 处理工具点击
+const handleToolClick = (action: Function) => {
+  action();
+  showFloatingButtons.value = false;
+};
+
+// 触摸开始
+const handleTouchStart = (e: TouchEvent) => {
+  const touch = e.touches[0];
+  startX = touch.clientX;
+  startY = touch.clientY;
+  startPosX = ballPosition.value.x;
+  startPosY = ballPosition.value.y;
+  isDragging.value = true;
+  hasMoved = false;
+};
+
+// 触摸移动
+const handleTouchMove = (e: TouchEvent) => {
+  if (!isDragging.value) return;
+  e.preventDefault();
+
+  const touch = e.touches[0];
+  const deltaX = touch.clientX - startX;
+  const deltaY = touch.clientY - startY;
+
+  // 判断是否移动
+  if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+    hasMoved = true;
+  }
+
+  // 计算新位置
+  let newX = startPosX + deltaX;
+  let newY = startPosY + deltaY;
+
+  // 限制在安全区域内
+  const maxX = window.innerWidth - 56 - safeArea.right;
+  const maxY = window.innerHeight - 56 - safeArea.bottom;
+
+  newX = Math.max(safeArea.left, Math.min(newX, maxX));
+  newY = Math.max(safeArea.top, Math.min(newY, maxY));
+
+  ballPosition.value = { x: newX, y: newY };
+};
+
+// 触摸结束
+const handleTouchEnd = () => {
+  isDragging.value = false;
+};
+
+// 鼠标按下（PC端）
+const handleMouseDown = (e: MouseEvent) => {
+  if (e.button !== 0) return; // 只响应左键
+
+  startX = e.clientX;
+  startY = e.clientY;
+  startPosX = ballPosition.value.x;
+  startPosY = ballPosition.value.y;
+  isDragging.value = true;
+  hasMoved = false;
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.value) return;
+
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+
+    // 判断是否移动
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      hasMoved = true;
+    }
+
+    // 计算新位置
+    let newX = startPosX + deltaX;
+    let newY = startPosY + deltaY;
+
+    // 限制在安全区域内
+    const maxX = window.innerWidth - 56 - safeArea.right;
+    const maxY = window.innerHeight - 56 - safeArea.bottom;
+
+    newX = Math.max(safeArea.left, Math.min(newX, maxX));
+    newY = Math.max(safeArea.top, Math.min(newY, maxY));
+
+    ballPosition.value = { x: newX, y: newY };
+  };
+
+  const handleMouseUp = () => {
+    isDragging.value = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseup", handleMouseUp);
+};
+
+// 旧的切换函数（保留兼容性）
 const toggleFloatingButtons = () => {
   showFloatingButtons.value = !showFloatingButtons.value;
 };
@@ -801,7 +929,7 @@ const saveNote = async () => {
           }
         }
 
-        toast.success("保存成功");
+        toast.success("已保存 ✓");
         router.push(`/main/notes/${newNoteId}`);
       } else {
         toast.error(response.data.message || "保存失败");
@@ -967,7 +1095,7 @@ const applyAIResult = async (result: string) => {
         }
       }, 0);
 
-      toast.success("已应用 AI 结果");
+      toast.success("搞定！文字更通顺了");
 
       // 关闭预览和 AI 面板
       aiStore.closePreview();
@@ -998,7 +1126,7 @@ const applyAIResult = async (result: string) => {
         }
       }, 0);
 
-      toast.success("已应用 AI 结果");
+      toast.success("搞定！文字更通顺了");
 
       // 关闭预览和 AI 面板
       aiStore.closePreview();
@@ -1006,7 +1134,7 @@ const applyAIResult = async (result: string) => {
     }
   } catch (error) {
     console.error("应用结果失败:", error);
-    toast.error("应用结果失败");
+    toast.error("出了点问题，再试一次？");
   }
 };
 
@@ -1071,11 +1199,11 @@ const regenerateAI = async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* 暗色模式下的工具栏 */
+/* 暗色模式下的工具栏 - 使用 #1a1a1a 而非纯黑 */
 .dark .ql-toolbar {
-  background-color: #1f2937;
-  border-color: #374151 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: #1a1a1a;
+  border-color: #2d2d2d !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* 工具栏按钮悬浮效果 */
@@ -1449,5 +1577,175 @@ const regenerateAI = async () => {
 .slide-up-3-leave-to {
   opacity: 0;
   transform: translateY(68px) scale(0.3);
+}
+
+/* 智能悬浮球样式 */
+.edit-tools-fab {
+  position: fixed;
+  z-index: 999;
+  width: 56px;
+  height: 56px;
+  cursor: move;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.edit-tools-fab.dragging {
+  cursor: grabbing;
+}
+
+.edit-tools-fab.dragging .fab-button {
+  transform: scale(1.1);
+}
+
+/* 主按钮 */
+.fab-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(120deg, #5b7ff2 0%, #d95deb 100%);
+  box-shadow: 0 4px 12px rgba(91, 127, 242, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.fab-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(91, 127, 242, 0.5);
+}
+
+.fab-button:active {
+  transform: scale(0.95);
+}
+
+/* 图标旋转动画 */
+.fab-icon {
+  font-size: 20px;
+  color: white;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.edit-tools-fab.active .fab-icon {
+  transform: rotate(45deg);
+}
+
+/* 工具菜单 */
+.tools-menu {
+  position: absolute;
+  bottom: 68px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  min-width: 160px;
+  z-index: 1;
+}
+
+.dark .tools-menu {
+  background: #1f2937;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* 工具项 */
+.tool-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-out;
+  text-align: left;
+}
+
+.tool-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dark .tool-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tool-item:active {
+  transform: scale(0.98);
+}
+
+/* 工具图标 */
+.tool-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.tool-icon-wrapper i {
+  font-size: 16px;
+}
+
+/* 工具标签 */
+.tool-label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.dark .tool-label {
+  color: #e5e7eb;
+}
+
+/* 菜单展开动画 */
+.slide-up-menu-enter-active {
+  animation: slideUpMenu 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-up-menu-leave-active {
+  animation: slideUpMenu 0.2s cubic-bezier(0.4, 0, 0.2, 1) reverse;
+}
+
+@keyframes slideUpMenu {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .tools-menu {
+    min-width: 140px;
+  }
+
+  .tool-label {
+    font-size: 13px;
+  }
+
+  .tool-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+  }
+
+  .tool-icon-wrapper i {
+    font-size: 14px;
+  }
 }
 </style>

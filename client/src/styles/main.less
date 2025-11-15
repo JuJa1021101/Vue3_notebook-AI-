@@ -3,17 +3,21 @@
 @import 'tailwindcss/utilities';
 @import './variables.less';
 @import './mixins.less';
+@import './utilities.less';
 
 /* 全局样式 */
 * {
   box-sizing: border-box;
 }
 
-/* 主题变量 */
+/* 主题变量 - 自定义品牌色 */
 :root {
   --line-height: 1.6;
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --theme-color: #3b82f6;
+  --theme-color: #5b7ff2;
+  --theme-color-hover: #4a68d6;
+  --accent-color: #d95deb;
+  --success-color: #22c55e;
 }
 
 body {
@@ -34,10 +38,10 @@ body,
   width: 100%;
 }
 
-/* 深色模式全局样式 */
+/* 深色模式全局样式 - 不用纯黑，用 #1a1a1a */
 .dark body {
-  background-color: #111827;
-  color: #f9fafb;
+  background-color: #1a1a1a;
+  color: #e5e5e5;
 }
 
 /* 应用容器样式 - 全屏布局 */
@@ -53,7 +57,7 @@ body,
 }
 
 .dark .app-container {
-  background: #111827;
+  background: #1a1a1a;
 }
 
 /* 主内容区域 */
@@ -112,8 +116,8 @@ body,
 }
 
 .dark .tab-bar {
-  background: rgba(31, 41, 55, 0.8);
-  border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 26, 26, 0.95);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 
 .nav-item {
@@ -125,23 +129,24 @@ body,
   }
 }
 
-/* 卡片样式 */
+/* 卡片样式 - 优化阴影和圆角 */
 .note-card {
   transition: all 0.3s ease;
-  border-radius: 12px;
+  border-radius: 10px;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
 .category-card {
   transition: all 0.3s ease;
+  border-radius: 10px;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -175,19 +180,19 @@ body,
   }
 }
 
-/* 渐变背景 */
+/* 渐变背景 - 优化角度 */
 .gradient-bg {
-  background: linear-gradient(135deg, #ffe0b2 0%, #ffab91 100%);
+  background: linear-gradient(120deg, #ffe0b2 0%, #ffab91 100%);
 }
 
-/* 输入框样式 */
+/* 输入框样式 - 使用品牌色 */
 .input-group {
   position: relative;
 
   input:focus+label,
   input:not(:placeholder-shown)+label {
     transform: translateY(-1.5rem) scale(0.8);
-    color: #667eea;
+    color: var(--theme-color);
   }
 
   label {
@@ -223,17 +228,17 @@ body,
   }
 }
 
-/* 步骤指示器 */
+/* 步骤指示器 - 使用品牌色 */
 .step-indicator {
   transition: all 0.3s ease;
 
   &.active {
-    background: #667eea;
+    background: var(--theme-color);
     color: white;
   }
 
   &.completed {
-    background: #10b981;
+    background: var(--success-color);
     color: white;
   }
 }

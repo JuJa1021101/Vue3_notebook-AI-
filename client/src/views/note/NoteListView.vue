@@ -197,7 +197,7 @@
               @click="applyFilters"
               class="flex-1 bg-blue-600 text-white py-2 rounded-lg"
             >
-              应用
+              确定
             </button>
           </div>
         </div>
@@ -248,7 +248,7 @@
             :disabled="deleting"
             class="flex-1 bg-red-600 text-white py-2 rounded-lg disabled:opacity-50"
           >
-            {{ deleting ? "删除中..." : "确定删除" }}
+            {{ deleting ? "删除中..." : "删除这篇笔记" }}
           </button>
         </div>
       </div>

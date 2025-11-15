@@ -16,11 +16,13 @@
           <!-- 原文 -->
           <div class="preview-section">
             <div class="section-header text-gray-600 dark:text-gray-300">
-              <i class="fas fa-file-alt text-blue-600 dark:text-blue-400"></i>
+              <i
+                class="fas fa-file-alt text-primary-500 dark:text-primary-400"
+              ></i>
               <span>原文</span>
             </div>
             <div
-              class="content-box bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 transition-colors"
+              class="content-box bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 transition-colors"
             >
               {{ originalContent }}
             </div>
@@ -34,7 +36,9 @@
           <!-- AI 处理后 -->
           <div class="preview-section">
             <div class="section-header text-gray-600 dark:text-gray-300">
-              <i class="fas fa-magic text-blue-600 dark:text-blue-400"></i>
+              <i
+                class="fas fa-magic text-primary-500 dark:text-primary-400"
+              ></i>
               <span>AI 优化后</span>
               <div v-if="isProcessing" class="typing-indicator">
                 <span class="typing-dot"></span>
@@ -43,7 +47,7 @@
               </div>
             </div>
             <div
-              class="content-box highlight prose bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-gray-900 dark:text-gray-100 transition-colors"
+              class="content-box highlight prose bg-primary-50/50 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800/50 text-gray-900 dark:text-gray-100 transition-colors"
               ref="processedContentRef"
               :class="{ streaming: isProcessing }"
             >
@@ -199,7 +203,7 @@ const regenerate = () => {
   padding: 20px;
 
   .modal-content {
-    border-radius: 12px;
+    border-radius: 10px;
     width: 100%;
     max-width: 900px;
     max-height: 90vh;
@@ -264,9 +268,9 @@ const regenerate = () => {
               align-items: center;
 
               .typing-dot {
-                width: 8px;
-                height: 8px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                width: 6px;
+                height: 6px;
+                background: linear-gradient(120deg, #5b7ff2 0%, #d95deb 100%);
                 border-radius: 50%;
                 animation: typing 1.2s infinite ease-in-out;
 
@@ -324,10 +328,10 @@ const regenerate = () => {
             @keyframes contentPulse {
               0%,
               100% {
-                box-shadow: 0 0 0 rgba(102, 126, 234, 0.1);
+                box-shadow: 0 0 0 rgba(91, 127, 242, 0.1);
               }
               50% {
-                box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+                box-shadow: 0 0 16px rgba(91, 127, 242, 0.15);
               }
             }
 
@@ -356,8 +360,8 @@ const regenerate = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #667eea;
-          font-size: 24px;
+          color: #5b7ff2;
+          font-size: 20px;
           margin: 10px 0;
         }
       }
@@ -377,7 +381,7 @@ const regenerate = () => {
           @apply text-gray-600 dark:text-gray-300;
 
           i {
-            @apply text-blue-600 dark:text-blue-400;
+            @apply text-primary-500 dark:text-primary-400;
           }
         }
       }
@@ -411,17 +415,17 @@ const regenerate = () => {
           border: 1px solid;
 
           &:hover {
-            @apply bg-blue-50 dark:bg-blue-900/20;
+            @apply bg-primary-50 dark:bg-primary-900/20;
           }
         }
 
         &.btn-primary {
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          background: linear-gradient(120deg, #5b7ff2 0%, #4a68d6 100%);
           color: white;
 
           &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(91, 127, 242, 0.3);
           }
         }
       }
@@ -523,7 +527,7 @@ const regenerate = () => {
 }
 
 .ai-preview-modal .prose blockquote {
-  @apply border-l-4 border-blue-600 dark:border-blue-400;
+  @apply border-l-4 border-primary-500 dark:border-primary-400;
   padding-left: 1em;
   margin-left: 0;
   font-style: italic;
