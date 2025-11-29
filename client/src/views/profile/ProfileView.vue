@@ -152,24 +152,7 @@
       </div>
     </div>
 
-    <!-- Achievement Badge -->
-    <div class="px-4 pb-6">
-      <div
-        class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl p-4 text-white"
-      >
-        <div class="flex items-center space-x-3">
-          <div
-            class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"
-          >
-            <i class="fas fa-trophy text-2xl"></i>
-          </div>
-          <div>
-            <h3 class="font-semibold mb-1">{{ achievement.title }}</h3>
-            <p class="text-sm opacity-90">{{ achievement.description }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -349,11 +332,6 @@ const storageInfo = ref({
   text: 1.2,
   images: 0.8,
   others: 0.3,
-});
-
-const achievement = ref({
-  title: "连续记录达人",
-  description: "已连续记录笔记 15 天",
 });
 
 const handleQuickAction = (action: string) => {

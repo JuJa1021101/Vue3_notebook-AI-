@@ -30,18 +30,21 @@ const togglePanel = () => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-image: url("/background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: #3b82f6;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 999;
+
+  /* 深色模式 */
+  :global(.dark) & {
+    background: #4b5563;
+    box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+  }
 
   i {
     font-size: 24px;
@@ -64,7 +67,11 @@ const togglePanel = () => {
 
   &:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+
+    :global(.dark) & {
+      box-shadow: 0 6px 20px rgba(75, 85, 99, 0.5);
+    }
 
     .tooltip {
       opacity: 1;

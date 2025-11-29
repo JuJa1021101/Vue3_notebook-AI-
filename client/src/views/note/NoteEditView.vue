@@ -1605,8 +1605,8 @@ const regenerateAI = async () => {
   height: 56px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(120deg, #5b7ff2 0%, #d95deb 100%);
-  box-shadow: 0 4px 12px rgba(91, 127, 242, 0.4);
+  background: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1617,9 +1617,18 @@ const regenerateAI = async () => {
   z-index: 2;
 }
 
+.dark .fab-button {
+  background: #4b5563;
+  box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+}
+
 .fab-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(91, 127, 242, 0.5);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+}
+
+.dark .fab-button:hover {
+  box-shadow: 0 6px 16px rgba(75, 85, 99, 0.5);
 }
 
 .fab-button:active {

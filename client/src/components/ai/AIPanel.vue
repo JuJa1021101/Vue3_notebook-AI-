@@ -5,7 +5,7 @@
         v-if="showPanel"
         class="ai-panel bg-white dark:bg-gray-800 transition-colors"
       >
-        <div class="panel-header">
+        <div class="panel-header bg-blue-500 dark:bg-gray-600">
           <h3 class="text-white">
             <i class="fas fa-magic"></i>
             AI 写作助手
@@ -165,12 +165,6 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: linear-gradient(120deg, #5b7ff2 0%, #d95deb 100%);
-  }
-
-  .dark .panel-header {
-    background: linear-gradient(120deg, #374151 0%, #1f2937 100%);
-    background-repeat: no-repeat;
     color: white;
 
     h3 {
@@ -363,4 +357,5 @@ onMounted(() => {
     max-width: 320px;
   }
 }
+
 </style>
