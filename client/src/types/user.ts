@@ -9,10 +9,14 @@ export interface User {
   nickname?: string
   bio?: string
   location?: string
+  tier?: 'free' | 'basic' | 'premium' | 'enterprise'
+  is_subscribed?: boolean
+  subscription_expiry?: string
+  last_login_at?: string
+  login_count?: number
+  is_active?: boolean
   created_at: string
   updated_at?: string
-  lastLoginAt?: string
-  isActive?: boolean
 }
 
 export interface UserProfile extends User {

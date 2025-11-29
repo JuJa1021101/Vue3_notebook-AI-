@@ -13,6 +13,14 @@ export interface Note {
   imageUrl?: string
   isStarred?: boolean
   isDeleted?: boolean
+  is_favorited?: boolean
+  is_pinned?: boolean
+  view_count?: number
+  word_count?: number
+  last_viewed_at?: string
+  visibility?: 'private' | 'public' | 'shared'
+  priority?: 'low' | 'normal' | 'high' | 'urgent'
+  status?: 'draft' | 'published' | 'archived'
 }
 
 export interface Category {
@@ -23,6 +31,10 @@ export interface Category {
   noteCount: number
   createdAt: string
   updatedAt: string
+  description?: string
+  sort_order?: number
+  is_default?: boolean
+  note_count?: number
 }
 
 export interface CreateNoteRequest {

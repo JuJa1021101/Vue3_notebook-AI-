@@ -27,6 +27,10 @@ const File = sequelize.define('File', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  filename: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
   file_path: {
     type: DataTypes.STRING(1000),
     allowNull: false
@@ -42,6 +46,26 @@ const File = sequelize.define('File', {
   file_type: {
     type: DataTypes.STRING(20),
     defaultValue: 'other'
+  },
+  storage_mode: {
+    type: DataTypes.STRING(20),
+    defaultValue: 'local',
+    comment: '存储模式: local-本地存储, oss-对象存储'
+  },
+  description: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: '文件描述'
+  },
+  download_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '下载次数'
+  },
+  is_public: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '是否公开'
   }
 }, {
   tableName: 'files',

@@ -26,6 +26,26 @@ const Category = sequelize.define('Category', {
   color: {
     type: DataTypes.STRING(7),
     defaultValue: '#667eea'
+  },
+  description: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: '分类描述'
+  },
+  sort_order: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '排序顺序'
+  },
+  is_default: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '是否默认分类'
+  },
+  note_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '笔记数量'
   }
 }, {
   tableName: 'categories',

@@ -66,6 +66,46 @@ const User = sequelize.define('User', {
   avatar_url: {
     type: DataTypes.STRING(255),
     allowNull: true
+  },
+  tier: {
+    type: DataTypes.ENUM('free', 'basic', 'premium', 'enterprise'),
+    defaultValue: 'free',
+    comment: '用户等级'
+  },
+  is_subscribed: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '是否订阅'
+  },
+  subscription_expiry: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: '订阅过期时间'
+  },
+  last_login_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: '最后登录时间'
+  },
+  login_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '登录次数'
+  },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: '账号是否激活'
+  },
+  bio: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: '个人简介'
+  },
+  location: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    comment: '所在地'
   }
 }, {
   tableName: 'users',
@@ -112,6 +152,14 @@ User.prototype.toSafeObject = function () {
     email: this.email,
     nickname: this.nickname,
     avatar_url: this.avatar_url,
+    tier: this.tier,
+    is_subscribed: this.is_subscribed,
+    subscription_expiry: this.subscription_expiry,
+    last_login_at: this.last_login_at,
+    login_count: this.login_count,
+    is_active: this.is_active,
+    bio: this.bio,
+    location: this.location,
     created_at: this.created_at,
     updated_at: this.updated_at
   };

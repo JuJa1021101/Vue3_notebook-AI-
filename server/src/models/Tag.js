@@ -21,6 +21,21 @@ const Tag = sequelize.define('Tag', {
     validate: {
       len: [1, 50]
     }
+  },
+  color: {
+    type: DataTypes.STRING(7),
+    allowNull: true,
+    comment: '标签颜色'
+  },
+  use_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '使用次数'
+  },
+  description: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: '标签描述'
   }
 }, {
   tableName: 'tags',

@@ -16,27 +16,38 @@ class FileService {
    */
   static async saveFileRecord(userId, fileData, ossResult = null, options = {}) {
     try {
-      const { getFileType } = require('../config/oss');
+      const { getFileType, getStorageMode } = require('../config/oss');
+      const path = require('path');
+
+      // 提取文件名
+      const filename = fileData.filename || path.basename(fileData.path);
+      
+      // 确定存储模式
+      const storageMode = getStorageMode();
 
       const file = await File.create({
         user_id: userId,
         note_id: options.note_id || null,
         original_name: fileData.originalname,
+        filename: filename,
         file_path: ossResult ? ossResult.url : fileData.path,
         file_size: fileData.size,
         mime_type: fileData.mimetype,
-        file_type: getFileType(fileData.mimetype)
+        file_type: getFileType(fileData.mimetype),
+        storage_mode: storageMode,
+        description: options.description || null
       });
 
       return {
         id: file.id,
         original_name: file.original_name,
+        filename: file.filename,
         file_path: file.file_path,
         file_size: file.file_size,
         mime_type: file.mime_type,
         file_type: file.file_type,
+        storage_mode: file.storage_mode,
         url: file.getUrl(),
-        storage_mode: file.getStorageMode(),
         created_at: file.created_at
       };
     } catch (error) {

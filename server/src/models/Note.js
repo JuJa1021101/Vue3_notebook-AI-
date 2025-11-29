@@ -46,6 +46,46 @@ const Note = sequelize.define('Note', {
   is_deleted: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  is_favorited: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '是否收藏'
+  },
+  is_pinned: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: '是否置顶'
+  },
+  view_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '浏览次数'
+  },
+  word_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: '字数统计'
+  },
+  last_viewed_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: '最后查看时间'
+  },
+  visibility: {
+    type: DataTypes.ENUM('private', 'public', 'shared'),
+    defaultValue: 'private',
+    comment: '可见性'
+  },
+  priority: {
+    type: DataTypes.ENUM('low', 'normal', 'high', 'urgent'),
+    defaultValue: 'normal',
+    comment: '优先级'
+  },
+  status: {
+    type: DataTypes.ENUM('draft', 'published', 'archived'),
+    defaultValue: 'draft',
+    comment: '状态'
   }
 }, {
   tableName: 'notes',
