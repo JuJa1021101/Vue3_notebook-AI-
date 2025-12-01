@@ -210,8 +210,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onBeforeUnmount } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, onMounted, computed, onBeforeUnmount, watch } from "vue";
+import { useRouter, useRoute, onBeforeRouteLeave } from "vue-router";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getCategories } from "@/api/category";
@@ -253,11 +253,26 @@ const noteForm = ref({
   tags: [] as string[],
 });
 
+// 保存原始内容用于比较
+const originalNoteForm = ref({
+  title: "",
+  content: "",
+  categoryId: 0,
+  tags: [] as string[],
+});
+
 const categories = ref<Category[]>([]);
 const attachments = ref<Attachment[]>([]);
 const showPreview = ref(false);
 const previewAttachment = ref<Attachment | null>(null);
 const showFloatingButtons = ref(false); // 控制浮动按钮显示/隐藏
+
+// 内容是否有变化
+const hasUnsavedChanges = ref(false);
+// 是否正在保存（保存时不提示）
+const isSaving = ref(false);
+// 是否已确认离开
+const isConfirmedLeave = ref(false);
 
 // 智能悬浮球相关状态
 const floatingBall = ref<HTMLElement | null>(null);
@@ -439,6 +454,45 @@ onMounted(() => {
   loadCategories();
   if (isEdit.value) {
     loadNote();
+  }
+});
+
+// 监听内容变化
+watch(
+  () => [noteForm.value.title, noteForm.value.content, noteForm.value.categoryId, noteForm.value.tags],
+  () => {
+    // 检查是否有变化
+    if (isEdit.value) {
+      // 编辑模式：比较当前内容和原始内容
+      hasUnsavedChanges.value =
+        noteForm.value.title !== originalNoteForm.value.title ||
+        noteForm.value.content !== originalNoteForm.value.content ||
+        noteForm.value.categoryId !== originalNoteForm.value.categoryId ||
+        JSON.stringify(noteForm.value.tags) !== JSON.stringify(originalNoteForm.value.tags);
+    } else {
+      // 新建模式：只要有标题或内容就算有变化
+      hasUnsavedChanges.value = !!(noteForm.value.title.trim() || noteForm.value.content.trim());
+    }
+  },
+  { deep: true }
+);
+
+// 路由守卫：拦截导航
+onBeforeRouteLeave((to, from, next) => {
+  // 如果正在保存或已确认离开，直接放行
+  if (isSaving.value || isConfirmedLeave.value) {
+    next();
+    return;
+  }
+
+  // 如果有未保存的变化，显示确认对话框
+  if (hasUnsavedChanges.value) {
+    showConfirmDialog.value = true;
+    // 保存目标路由，用于确认后跳转
+    pendingRoute.value = to;
+    next(false); // 阻止导航
+  } else {
+    next(); // 没有变化，直接放行
   }
 });
 
@@ -787,6 +841,14 @@ const loadNote = async () => {
         tags: note.tags?.map((t: any) => t.name) || [],
       };
 
+      // 保存原始内容
+      originalNoteForm.value = {
+        title: note.title,
+        content: note.content,
+        categoryId: note.category_id,
+        tags: note.tags?.map((t: any) => t.name) || [],
+      };
+
       // 加载附件
       await loadAttachments();
     } else {
@@ -891,6 +953,7 @@ const saveNote = async () => {
   }
 
   saving.value = true;
+  isSaving.value = true; // 标记正在保存
 
   try {
     const noteData = {
@@ -906,6 +969,8 @@ const saveNote = async () => {
 
       if (response.data.success) {
         toast.success("更新成功");
+        // 标记为已确认离开，避免路由守卫拦截
+        isConfirmedLeave.value = true;
         // 编辑完成后直接回退到上一页（详情页）
         // 详情页会自动重新加载最新数据
         router.back();
@@ -932,6 +997,8 @@ const saveNote = async () => {
         }
 
         toast.success("已保存");
+        // 标记为已确认离开，避免路由守卫拦截
+        isConfirmedLeave.value = true;
         // 新建笔记使用 replace，避免返回到空白编辑页
         router.replace(`/main/notes/${newNoteId}`);
       } else {
@@ -943,25 +1010,39 @@ const saveNote = async () => {
     toast.error(error.response?.data?.message || "保存失败，请重试");
   } finally {
     saving.value = false;
+    isSaving.value = false;
   }
 };
 
 const showConfirmDialog = ref(false);
+const pendingRoute = ref<any>(null); // 保存待跳转的路由
 
 const goBack = () => {
-  if (noteForm.value.title || noteForm.value.content) {
+  if (hasUnsavedChanges.value) {
     showConfirmDialog.value = true;
+    pendingRoute.value = null; // 返回按钮不需要保存路由
   } else {
     router.back();
   }
 };
 
 const handleConfirmLeave = () => {
-  router.back();
+  isConfirmedLeave.value = true;
+  showConfirmDialog.value = false;
+  
+  // 如果有待跳转的路由（从导航栏触发），跳转到目标路由
+  if (pendingRoute.value) {
+    router.push(pendingRoute.value);
+    pendingRoute.value = null;
+  } else {
+    // 否则返回上一页（从返回按钮触发）
+    router.back();
+  }
 };
 
 const handleCancelLeave = () => {
   showConfirmDialog.value = false;
+  pendingRoute.value = null;
 };
 
 // ==================== AI 助手功能 ====================
