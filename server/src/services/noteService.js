@@ -681,6 +681,115 @@ class NoteService {
       throw error;
     }
   }
+
+  /**
+   * 切换笔记收藏状态
+   * @param {number} noteId - 笔记ID
+   * @param {number} userId - 用户ID
+   * @returns {Promise<Object>} 更新后的收藏状态
+   */
+  async toggleFavorite(noteId, userId) {
+    try {
+      const note = await Note.findOne({
+        where: {
+          id: noteId,
+          user_id: userId,
+          is_deleted: false
+        }
+      });
+
+      if (!note) {
+        throw new Error('笔记不存在或无权限访问');
+      }
+
+      // 切换收藏状态
+      const newFavoriteStatus = !note.is_favorited;
+      await note.update({
+        is_favorited: newFavoriteStatus
+      });
+
+      logger.info(`笔记 ${noteId} 收藏状态已更新为 ${newFavoriteStatus}`);
+
+      return {
+        id: noteId,
+        is_favorited: newFavoriteStatus
+      };
+    } catch (error) {
+      logger.error('切换收藏状态失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取收藏的笔记列表
+   * @param {number} userId - 用户ID
+   * @param {Object} options - 查询选项
+   * @returns {Promise<Object>} 收藏笔记列表和总数
+   */
+  async getFavoritedNotes(userId, options = {}) {
+    try {
+      const {
+        page = 1,
+        limit = 20,
+        category_id,
+        search,
+        sort_by = 'updated_at',
+        sort_order = 'DESC'
+      } = options;
+
+      const offset = (page - 1) * limit;
+      const where = {
+        user_id: userId,
+        is_deleted: false,
+        is_favorited: true
+      };
+
+      // 分类筛选
+      if (category_id) {
+        where.category_id = category_id;
+      }
+
+      // 搜索功能
+      if (search) {
+        where[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { content_text: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Note.findAndCountAll({
+        where,
+        include: [
+          {
+            model: Category,
+            as: 'category',
+            attributes: ['id', 'name', 'icon', 'color']
+          },
+          {
+            model: Tag,
+            as: 'tags',
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          }
+        ],
+        order: [[sort_by, sort_order.toUpperCase()]],
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        distinct: true
+      });
+
+      return {
+        notes: rows,
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(count / limit)
+      };
+    } catch (error) {
+      logger.error('获取收藏笔记列表失败:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new NoteService();

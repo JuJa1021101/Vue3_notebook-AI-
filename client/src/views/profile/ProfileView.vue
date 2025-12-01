@@ -337,13 +337,13 @@ const storageInfo = ref({
 const handleQuickAction = (action: string) => {
   switch (action) {
     case "favorites":
-      toast.info("收藏功能开发中...");
+      router.push("/main/notes/favorites");
       break;
     case "recent":
       toast.info("最近功能开发中...");
       break;
     case "trash":
-      toast.info("回收站功能开发中...");
+      router.push("/main/notes/trash");
       break;
     case "export":
       toast.info("导出功能开发中...");

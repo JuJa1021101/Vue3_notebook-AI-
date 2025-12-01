@@ -328,6 +328,7 @@ const loadRecentNotes = async () => {
         createdAt: formatDate(note.created_at),
         updatedAt: formatDate(note.updated_at),
         imageUrl: note.thumbnail_url || undefined,
+        is_favorited: note.is_favorited || false,
       }));
     } else {
       console.error("获取笔记列表失败:", response.data.message);
@@ -444,6 +445,8 @@ const confirmDelete = async () => {
     deleting.value = false;
   }
 };
+
+
 </script>
 
 <style scoped>

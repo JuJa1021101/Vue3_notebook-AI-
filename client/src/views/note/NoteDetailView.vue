@@ -127,7 +127,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getNoteById } from "@/api/note";
+import { getNoteById, toggleFavorite } from "@/api/note";
 import type { Note } from "@/api/note";
 import { getNoteAttachments, deleteFile } from "@/api/file";
 import { toast } from "@/utils/toast";
@@ -208,7 +208,7 @@ const loadNote = async () => {
         tags: apiNote.tags?.map((t) => t.name) || [],
         createdAt: formatDate(apiNote.created_at),
         updatedAt: formatDate(apiNote.updated_at),
-        isStarred: false,
+        isStarred: apiNote.is_favorited || false,
       };
 
       // 等待 DOM 更新后初始化标题折叠功能
@@ -353,10 +353,20 @@ const toggleHeadingInView = (heading: Element) => {
   });
 };
 
-const toggleStar = () => {
-  if (note.value) {
-    note.value.isStarred = !note.value.isStarred;
-    // TODO: 调用API更新收藏状态
+const toggleStar = async () => {
+  if (!note.value) return;
+
+  try {
+    const noteId = parseInt(note.value.id);
+    const response = await toggleFavorite(noteId);
+
+    if (response.data.success) {
+      note.value.isStarred = response.data.data.is_favorited;
+      toast.success(response.data.data.is_favorited ? "已收藏" : "已取消收藏");
+    }
+  } catch (error: any) {
+    console.error("切换收藏状态失败:", error);
+    toast.error("操作失败，请重试");
   }
 };
 

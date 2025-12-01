@@ -341,6 +341,56 @@ class NoteController {
       return error(ctx, '获取统计数据失败', 500);
     }
   }
+
+  /**
+   * 切换笔记收藏状态
+   */
+  async toggleFavorite(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+      const noteId = parseInt(ctx.params.id);
+
+      if (!noteId || noteId <= 0) {
+        return error(ctx, '无效的笔记ID', 400);
+      }
+
+      const result = await noteService.toggleFavorite(noteId, userId);
+
+      logger.info(`用户 ${userId} 切换笔记 ${noteId} 收藏状态为 ${result.is_favorited}`);
+      return success(ctx, result, result.is_favorited ? '已收藏' : '已取消收藏');
+    } catch (err) {
+      logger.error('切换收藏状态失败:', err);
+
+      if (err.message === '笔记不存在或无权限访问') {
+        return error(ctx, err.message, 404);
+      }
+
+      return error(ctx, '切换收藏状态失败', 500);
+    }
+  }
+
+  /**
+   * 获取收藏的笔记列表
+   */
+  async getFavoritedNotes(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+
+      // 验证查询参数
+      const { error: validationError, value } = querySchema.validate(ctx.query);
+      if (validationError) {
+        return error(ctx, validationError.details[0].message, 400);
+      }
+
+      const result = await noteService.getFavoritedNotes(userId, value);
+
+      logger.info(`用户 ${userId} 获取收藏笔记列表，共 ${result.total} 条记录`);
+      return success(ctx, result, '获取收藏笔记列表成功');
+    } catch (err) {
+      logger.error('获取收藏笔记列表失败:', err);
+      return error(ctx, '获取收藏笔记列表失败', 500);
+    }
+  }
 }
 
 module.exports = new NoteController();

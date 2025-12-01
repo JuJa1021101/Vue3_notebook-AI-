@@ -286,6 +286,7 @@ interface LocalNote {
   createdAt: string;
   updatedAt: string;
   imageUrl?: string; // 添加缩略图字段
+  is_favorited?: boolean; // 添加收藏状态
 }
 
 // 定义本地使用的Category类型（兼容模板）
@@ -454,6 +455,7 @@ const loadNotes = async () => {
         createdAt: formatDate(note.created_at),
         updatedAt: formatDate(note.updated_at),
         imageUrl: note.thumbnail_url, // 添加缩略图
+        is_favorited: note.is_favorited || false,
       }));
     } else {
       console.error("获取笔记列表失败:", response.data.message);

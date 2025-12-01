@@ -10,6 +10,7 @@ export interface Note {
   category_id: number
   thumbnail_url?: string
   is_deleted: boolean
+  is_favorited: boolean
   created_at: string
   updated_at: string
   category?: {
@@ -153,4 +154,18 @@ export interface UserStatsResponse {
 
 export const getUserStats = () => {
   return request.get<ApiResponse<UserStatsResponse>>('/notes/stats')
+}
+
+/**
+ * 切换笔记收藏状态
+ */
+export const toggleFavorite = (id: number) => {
+  return request.post<ApiResponse<{ id: number; is_favorited: boolean }>>(`/notes/${id}/favorite`)
+}
+
+/**
+ * 获取收藏的笔记列表
+ */
+export const getFavoritedNotes = (params?: GetNotesParams) => {
+  return request.get<ApiResponse<NotesResponse>>('/notes/favorites', { params })
 }
