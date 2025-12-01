@@ -148,13 +148,15 @@ Requirements:
 
 要求：
 - 自动分段（识别语义断点）
-- 添加合适的标题层级
-- 优化列表结构
-- 添加必要的分隔线
+- 添加合适的标题层级（使用 # 表示 H1，## 表示 H2，以此类推）
+- 优化列表结构（使用 - 或 1. 格式）
+- 添加必要的分隔线（使用 ---）
+- 使用 **粗体** 和 *斜体* 强调重点
 - 改善整体可读性
 - 保持原文意思不变
+- 必须使用标准 Markdown 语法输出
 
-【重要】直接输出优化后的内容，不要添加任何说明性文字（如"此版本使用了..."、"本次优化..."等），不要添加前缀（如"排版美化后："），不要添加后缀说明。`,
+【重要】直接输出优化后的 Markdown 格式内容，不要添加任何说明性文字（如"此版本使用了..."、"本次优化..."等），不要添加前缀（如"排版美化后："），不要添加后缀说明。`,
 
     en: `Please beautify the layout of the following text to make its structure clearer:
 
@@ -163,18 +165,20 @@ Original text:
 
 Requirements:
 - Auto-paragraph (identify semantic breakpoints)
-- Add appropriate heading hierarchy
-- Optimize list structure
-- Add necessary dividers
+- Add appropriate heading hierarchy (use # for H1, ## for H2, etc.)
+- Optimize list structure (use - or 1. format)
+- Add necessary dividers (use ---)
+- Use **bold** and *italic* for emphasis
 - Improve overall readability
 - Keep the original meaning unchanged
+- Must output in standard Markdown syntax
 
-【IMPORTANT】Output the optimized content directly without any explanatory text (such as "This version uses...", "This optimization..."), without prefixes (such as "After beautification:"), and without suffix explanations.`
+【IMPORTANT】Output the optimized Markdown content directly without any explanatory text (such as "This version uses...", "This optimization..."), without prefixes (such as "After beautification:"), and without suffix explanations.`
   },
 
   // 内容润色
   polish: {
-    zh: `请润色以下文本，使其更加流畅和专业：
+    zh: `请润色以下文本，使其更加流畅和专业，并优化排版：
 
 原文：
 {content}
@@ -186,10 +190,15 @@ Requirements:
 - 消除冗余表达
 - 写作风格：{style}
 - 保持原文核心意思不变
+- 优化排版结构，使用标准 Markdown 语法
+- 添加合适的标题层级（使用 # 表示 H1，## 表示 H2，以此类推）
+- 优化列表格式（使用 - 或 1. 格式）
+- 使用 **粗体** 和 *斜体* 强调重点
+- 必须使用标准 Markdown 语法输出
 
-【重要】直接输出润色后的内容，不要添加任何说明性文字（如"当然可以"、"以下是润色后的版本"、"保持了..."等），不要添加前缀和后缀说明。`,
+【重要】直接输出润色和排版优化后的 Markdown 格式内容，不要添加任何说明性文字（如"当然可以"、"以下是润色后的版本"、"保持了..."等），不要添加前缀和后缀说明。`,
 
-    en: `Please polish the following text to make it more fluent and professional:
+    en: `Please polish the following text to make it more fluent and professional, and optimize the layout:
 
 Original text:
 {content}
@@ -201,8 +210,13 @@ Requirements:
 - Eliminate redundant expressions
 - Writing style: {style}
 - Keep the core meaning unchanged
+- Optimize layout structure using standard Markdown syntax
+- Add appropriate heading hierarchy (use # for H1, ## for H2, etc.)
+- Optimize list format (use - or 1. format)
+- Use **bold** and *italic* for emphasis
+- Must output in standard Markdown syntax
 
-【IMPORTANT】Output the polished content directly without any explanatory text (such as "Sure", "Here is the polished version", "This maintains..."), without prefixes and suffix explanations.`
+【IMPORTANT】Output the polished and layout-optimized Markdown content directly without any explanatory text (such as "Sure", "Here is the polished version", "This maintains..."), without prefixes and suffix explanations.`
   },
 
   // 生成摘要

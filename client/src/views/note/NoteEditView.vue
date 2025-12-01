@@ -906,7 +906,9 @@ const saveNote = async () => {
 
       if (response.data.success) {
         toast.success("更新成功");
-        router.push(`/main/notes/${noteId}`);
+        // 编辑完成后直接回退到上一页（详情页）
+        // 详情页会自动重新加载最新数据
+        router.back();
       } else {
         toast.error(response.data.message || "更新失败");
       }
@@ -917,7 +919,7 @@ const saveNote = async () => {
       if (response.data.success) {
         const newNoteId = response.data.data.id;
 
-        // 如果有附件，关联到新创建的笔记
+        // 如果有附件，关联到新创建���笔记
         if (attachments.value.length > 0) {
           try {
             const fileIds = attachments.value.map((a) => a.id);
@@ -929,8 +931,9 @@ const saveNote = async () => {
           }
         }
 
-        toast.success("已保存 ✓");
-        router.push(`/main/notes/${newNoteId}`);
+        toast.success("已保存");
+        // 新建笔记使用 replace，避免返回到空白编辑页
+        router.replace(`/main/notes/${newNoteId}`);
       } else {
         toast.error(response.data.message || "保存失败");
       }
@@ -1059,9 +1062,9 @@ const applyAIResult = async (result: string) => {
     const hasMarkdownSyntax =
       /^#{1,6}\s|^\*\*|^\*|^-\s|^\d+\.\s|^>\s|```/m.test(result);
 
-    // 对于格式优化、排版美化、续写和扩写操作，都进行 Markdown 解析
+    // 对于格式优化、排版美化、内容润色、续写和扩写操作，都进行 Markdown 解析
     const shouldRenderMarkdown =
-      ["format", "beautify", "continue", "expand"].includes(
+      ["format", "beautify", "polish", "continue", "expand"].includes(
         currentAction || ""
       ) || hasMarkdownSyntax;
 
