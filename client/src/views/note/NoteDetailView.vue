@@ -641,7 +641,7 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 }
 
 .prose h2 {
-  font-size: 1.5em;
+  font-size: 1.75em;
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
@@ -654,7 +654,7 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 }
 
 .prose h3 {
-  font-size: 1.25em;
+  font-size: 1.5em;
   font-weight: 600;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
@@ -667,7 +667,7 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 }
 
 .prose h4 {
-  font-size: 1.1em;
+  font-size: 1.25em;
   font-weight: 600;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
@@ -679,7 +679,7 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 }
 
 .prose h5 {
-  font-size: 1em;
+  font-size: 1.125em;
   font-weight: 600;
   margin-top: 0.75rem;
   margin-bottom: 0.5rem;
@@ -691,7 +691,7 @@ const handlePreviewAttachment = (attachment: Attachment) => {
 }
 
 .prose h6 {
-  font-size: 0.9em;
+  font-size: 1.0625em;
   font-weight: 600;
   margin-top: 0.75rem;
   margin-bottom: 0.5rem;

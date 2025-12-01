@@ -1243,6 +1243,41 @@ const regenerateAI = async () => {
   background-color: #374151;
 }
 
+/* 标题下拉菜单选项的字体大小 */
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  font-size: 2em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  font-size: 1.75em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  font-size: 1.5em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+  font-size: 1.25em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
+  font-size: 1.125em !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
+  font-size: 1.0625em !important;
+}
+
+/* Normal 选项保持默认大小 */
+.ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value])::before {
+  font-size: 1em !important;
+}
+
+/* 标题下拉菜单选项的行高调整，避免重叠 */
+.ql-snow .ql-picker.ql-header .ql-picker-item {
+  padding: 8px 12px !important;
+}
+
 .ql-editor {
   min-height: calc(100vh - 350px);
   padding: 20px;
@@ -1338,6 +1373,31 @@ const regenerateAI = async () => {
   margin-left: 0;
   transition: background-color 0.2s ease;
   font-weight: bold !important;
+}
+
+/* 标题字体大小 - 覆盖 Quill 默认样式 */
+.ql-editor h1 {
+  font-size: 2em !important;
+}
+
+.ql-editor h2 {
+  font-size: 1.75em !important;
+}
+
+.ql-editor h3 {
+  font-size: 1.5em !important;
+}
+
+.ql-editor h4 {
+  font-size: 1.25em !important;
+}
+
+.ql-editor h5 {
+  font-size: 1.125em !important;
+}
+
+.ql-editor h6 {
+  font-size: 1.0625em !important;
 }
 
 /* 正文内容与标题对齐 */
