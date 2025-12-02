@@ -42,10 +42,8 @@
         >
           <div class="flex items-center space-x-3">
             <i
-              :class="
-                item.icon +
-                (item.name === 'logout' ? ' text-red-500' : ' text-gray-400')
-              "
+              :class="item.icon"
+              :style="{ color: item.color }"
             ></i>
             <span
               :class="
@@ -81,34 +79,33 @@ const settingsOptions = ref([
     name: "notification",
     title: "通知设置",
     icon: "fas fa-bell",
+    color: "#ef4444",
     developing: true,
   },
   {
     name: "privacy",
-    title: "隐私设置",
+    title: "隐私安全",
     icon: "fas fa-shield-alt",
-    developing: true,
-  },
-  {
-    name: "sync",
-    title: "数据同步",
-    icon: "fas fa-sync",
+    color: "#f59e0b",
     developing: true,
   },
   {
     name: "help",
     title: "帮助与反馈",
     icon: "fas fa-question-circle",
+    color: "#6366f1",
   },
   {
     name: "about",
     title: "关于我们",
     icon: "fas fa-info-circle",
+    color: "#10b981",
   },
   {
     name: "logout",
     title: "退出登录",
     icon: "fas fa-sign-out-alt",
+    color: "#ef4444",
   },
 ]);
 

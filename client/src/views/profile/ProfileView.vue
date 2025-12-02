@@ -320,20 +320,6 @@ const menuItems = ref([
     icon: "fas fa-palette",
     color: "#8b5cf6",
   },
-  {
-    name: "privacy",
-    title: "隐私安全",
-    description: "密码锁、指纹解锁",
-    icon: "fas fa-shield-alt",
-    color: "#f59e0b",
-  },
-  {
-    name: "notification",
-    title: "通知设置",
-    description: "提醒、推送通知",
-    icon: "fas fa-bell",
-    color: "#ef4444",
-  },
 ]);
 
 const storageInfo = ref({
