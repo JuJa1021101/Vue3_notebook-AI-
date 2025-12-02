@@ -50,7 +50,7 @@
                 >今日使用</span
               >
               <span class="stat-value text-primary-500 dark:text-primary-400"
-                >{{ remainingQuota.daily }} / {{ stats.limits.daily }}</span
+                >{{ stats.limits.daily === -1 ? '无限制' : `${remainingQuota.daily} / ${stats.limits.daily}` }}</span
               >
             </div>
             <div class="stat-item">
@@ -58,7 +58,7 @@
                 >本小时</span
               >
               <span class="stat-value text-primary-500 dark:text-primary-400"
-                >{{ remainingQuota.hourly }} / {{ stats.limits.hourly }}</span
+                >{{ stats.limits.hourly === -1 ? '无限制' : `${remainingQuota.hourly} / ${stats.limits.hourly}` }}</span
               >
             </div>
           </div>

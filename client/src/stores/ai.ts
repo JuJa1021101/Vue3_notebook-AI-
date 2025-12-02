@@ -53,6 +53,10 @@ export const useAIStore = defineStore('ai', {
     canUseAI: (state) => {
       if (!state.stats) return true;
       const { rateLimit, limits } = state.stats;
+      // 如果是无限制，则直接返回true
+      if (limits.hourly === -1 || limits.daily === -1) {
+        return true;
+      }
       return rateLimit.hourly_count < limits.hourly && rateLimit.daily_count < limits.daily;
     },
 

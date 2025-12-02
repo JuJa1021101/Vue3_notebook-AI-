@@ -129,7 +129,7 @@ class AuthService {
    */
   static async validateUser(userId) {
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'nickname', 'avatar_url', 'created_at']
+      attributes: ['id', 'username', 'email', 'nickname', 'avatar_url', 'tier', 'created_at']
     });
 
     if (!user) {
@@ -215,6 +215,42 @@ class AuthService {
       url: fileRecord.url,
       message: '头像上传成功'
     };
+  }
+
+  /**
+   * 更新用户订阅
+   */
+  static async updateUserSubscription(userId, tier) {
+    // 验证用户是否存在
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    // 验证tier是否有效
+    const validTiers = ['free', 'basic', 'pro', 'enterprise'];
+    if (!validTiers.includes(tier)) {
+      throw new Error('无效的用户等级');
+    }
+
+    // 计算订阅过期时间
+    let subscriptionExpiry = null;
+    let isSubscribed = tier !== 'free';
+    
+    if (isSubscribed) {
+      // 设置30天后过期
+      subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+    }
+
+    // 更新用户订阅信息
+    await user.update({
+      tier,
+      is_subscribed: isSubscribed,
+      subscription_expiry: subscriptionExpiry
+    });
+
+    return user.toSafeObject();
   }
 }
 

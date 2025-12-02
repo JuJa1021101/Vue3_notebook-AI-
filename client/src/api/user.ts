@@ -48,3 +48,24 @@ export const getUserProfile = () => {
     method: 'GET'
   });
 };
+
+/**
+ * 更新用户订阅
+ */
+export const updateUserSubscription = (tier: string) => {
+  return request({
+    url: '/auth/subscription',
+    method: 'PUT',
+    data: { tier }
+  });
+};
+
+/**
+ * 获取用户存储空间信息
+ */
+export const getStorageInfo = () => {
+  return request({
+    url: '/auth/storage',
+    method: 'GET'
+  });
+};

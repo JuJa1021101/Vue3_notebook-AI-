@@ -56,4 +56,16 @@ router.put('/password', authenticate, AuthController.changePassword);
 const { upload } = require('../config/upload');
 router.post('/avatar', authenticate, upload.single('avatar'), AuthController.uploadAvatar);
 
+/**
+ * 更新用户订阅
+ * PUT /api/auth/subscription
+ */
+router.put('/subscription', authenticate, AuthController.updateSubscription);
+
+/**
+ * 获取用户存储空间信息
+ * GET /api/auth/storage
+ */
+router.get('/storage', authenticate, AuthController.getStorageInfo);
+
 module.exports = router;

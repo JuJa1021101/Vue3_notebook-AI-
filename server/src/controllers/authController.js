@@ -1,4 +1,5 @@
 const AuthService = require('../services/authService');
+const StorageService = require('../services/storageService');
 const { success, error, created, unauthorized } = require('../utils/response');
 const logger = require('../utils/logger');
 
@@ -225,6 +226,62 @@ class AuthController {
       }
 
       return error(ctx, '头像上传失败', 500);
+    }
+  }
+
+  /**
+   * 更新用户订阅
+   */
+  static async updateSubscription(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const { tier } = ctx.request.body;
+
+      logger.info('Update subscription attempt', { userId, tier });
+
+      const user = await AuthService.updateUserSubscription(userId, tier);
+
+      logger.info('Subscription updated successfully', { userId, tier });
+
+      success(ctx, user, '订阅更新成功');
+    } catch (err) {
+      logger.error('Update subscription failed', { error: err.message, userId: ctx.state.userId });
+
+      if (err.message.includes('用户不存在')) {
+        return unauthorized(ctx, '用户不存在');
+      }
+
+      if (err.message.includes('无效的用户等级')) {
+        return error(ctx, err.message, 400);
+      }
+
+      return error(ctx, '订阅更新失败', 500);
+    }
+  }
+
+  /**
+   * 获取用户存储空间信息
+   */
+  static async getStorageInfo(ctx) {
+    try {
+      const userId = ctx.state.userId;
+      const user = await AuthService.validateUser(userId);
+
+      logger.info('Get storage info attempt', { userId, tier: user.tier });
+
+      const storageInfo = await StorageService.getUserStorageInfo(userId, user.tier);
+
+      logger.info('Get storage info successful', { userId, used: storageInfo.used, total: storageInfo.total });
+
+      success(ctx, storageInfo, '获取存储空间信息成功');
+    } catch (err) {
+      logger.error('Get storage info failed', { error: err.message, userId: ctx.state.userId });
+
+      if (err.message.includes('用户不存在')) {
+        return unauthorized(ctx, '用户不存在');
+      }
+
+      return error(ctx, '获取存储空间信息失败', 500);
     }
   }
 }

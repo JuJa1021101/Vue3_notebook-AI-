@@ -110,6 +110,11 @@ const routes: RouteRecordRaw[] = [
         path: 'profile/theme',
         name: 'ThemeSettings',
         component: () => import('@/views/profile/ThemeSettingsView.vue')
+      },
+      {
+        path: 'profile/subscription',
+        name: 'Subscription',
+        component: () => import('@/views/profile/SubscriptionView.vue')
       }
     ]
   }

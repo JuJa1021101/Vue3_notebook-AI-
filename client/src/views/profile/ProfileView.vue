@@ -162,6 +162,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import { toast } from "@/utils/toast";
 import { getUserStats } from "@/api/note";
+import { getStorageInfo } from "@/api/user";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -258,6 +259,8 @@ onMounted(async () => {
 
   // 加载统计数据
   await loadUserStats();
+  // 加载存储空间信息
+  await fetchStorageInfo();
 });
 
 const quickActions = ref([
@@ -296,6 +299,13 @@ const menuItems = ref([
     color: "#3b82f6",
   },
   {
+    name: "subscription",
+    title: "订阅套餐",
+    description: "AI使用次数、会员等级",
+    icon: "fas fa-crown",
+    color: "#fbbf24",
+  },
+  {
     name: "sync",
     title: "数据同步",
     description: "云端备份、多设备同步",
@@ -327,12 +337,32 @@ const menuItems = ref([
 ]);
 
 const storageInfo = ref({
-  used: 2.3,
-  total: 5,
-  text: 1.2,
-  images: 0.8,
-  others: 0.3,
+  used: 0,
+  total: 1,
+  images: 0,
+  others: 0,
+  text: 0,
 });
+
+// 获取存储空间信息
+const fetchStorageInfo = async () => {
+  try {
+    const response = await getStorageInfo();
+    if (response.data.success) {
+      const data = response.data.data;
+      storageInfo.value = {
+        used: data.used,
+        total: data.total,
+        images: data.images,
+        others: data.others,
+        text: 0, // 笔记文字暂不记录
+      };
+    }
+  } catch (error) {
+    console.error("获取存储空间信息失败:", error);
+    toast.error("获取存储空间信息失败");
+  }
+};
 
 const handleQuickAction = (action: string) => {
   switch (action) {
@@ -355,6 +385,9 @@ const handleMenuClick = (menu: string) => {
   switch (menu) {
     case "account":
       router.push("/main/profile/account");
+      break;
+    case "subscription":
+      router.push("/main/profile/subscription");
       break;
     case "sync":
       toast.info("数据同步功能开发中...");
