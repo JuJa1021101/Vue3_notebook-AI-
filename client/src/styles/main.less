@@ -182,7 +182,16 @@ body,
 
 /* 渐变背景 - 优化角度 */
 .gradient-bg {
-  background: linear-gradient(120deg, #ffe0b2 0%, #ffab91 100%);
+  background-image: url('/login.png');
+  background-size: cover;
+  background-position: center;
+  /* 毛玻璃效果 */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* 半透明渐变叠加层，增强文字可读性 */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%), url('/login.png');
+  background-size: cover;
+  background-position: center;
 }
 
 /* 输入框样式 - 使用品牌色 */

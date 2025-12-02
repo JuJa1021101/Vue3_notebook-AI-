@@ -6,7 +6,7 @@
         <button @click="goBack" class="p-2 -ml-2">
           <i class="fas fa-arrow-left text-white text-lg"></i>
         </button>
-        <h1 class="text-xl font-bold">创建账户</h1>
+        <h1 class="text-xl font-bold" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">创建账户</h1>
         <div class="w-8"></div>
       </div>
 
@@ -26,7 +26,7 @@
           <div v-if="step < 3" class="w-8 h-0.5 bg-white/30 ml-4"></div>
         </div>
       </div>
-      <p class="text-center text-white/80 text-sm">
+      <p class="text-center text-white/80 text-sm" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">
         {{ stepDescriptions[currentStep - 1] }}
       </p>
     </div>

@@ -5,8 +5,8 @@
       <div class="w-20 h-20 mx-auto mb-4 overflow-hidden rounded-2xl shadow-lg">
         <img src="/logo.png" alt="智本集" class="w-full h-full object-cover" />
       </div>
-      <h1 class="text-2xl font-bold mb-2">智本集</h1>
-      <p class="text-white/80">记录生活，分享思考</p>
+      <h1 class="text-2xl font-bold mb-2" style="text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">智本集</h1>
+      <p class="text-white/80" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">记录生活，分享思考</p>
     </div>
 
     <!-- Login Form -->

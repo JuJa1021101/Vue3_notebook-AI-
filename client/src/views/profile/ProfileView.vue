@@ -417,6 +417,9 @@ const handleAvatarError = (event: Event) => {
 .gradient-bg {
   background: url("/background.jpg") center/cover no-repeat;
   position: relative;
+  /* 毛玻璃效果 */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .gradient-bg::before {
@@ -426,24 +429,19 @@ const handleAvatarError = (event: Event) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    120deg,
-    rgba(91, 127, 242, 0.8) 0%,
-    rgba(217, 93, 235, 0.8) 100%
-  );
+  /* 移除紫色渐变，改为半透明黑色叠加层，增强文字可读性 */
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .gradient-bg > * {
   position: relative;
   z-index: 1;
+  /* 添加文字阴影，增强与背景的对比度 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* 暗黑模式下使用纯色或微妙的渐变 */
+/* 暗黑模式下使用更明显的半透明叠加层 */
 .dark .gradient-bg::before {
-  background: linear-gradient(
-    120deg,
-    rgba(45, 55, 72, 0.9) 0%,
-    rgba(26, 32, 44, 0.9) 100%
-  );
+  background: rgba(0, 0, 0, 0.5);
 }
 </style>
