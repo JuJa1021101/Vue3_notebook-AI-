@@ -6,8 +6,8 @@ import type { User } from '@/types/user'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
-  const token = ref<string | null>(localStorage.getItem('token'))
-  const isAuthenticated = ref<boolean>(!!localStorage.getItem('token'))
+  const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
+  const isAuthenticated = ref<boolean>(!!localStorage.getItem('accessToken'))
   const isLoading = ref<boolean>(false)
 
   // 登录
@@ -18,11 +18,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.data.code === 200 && response.data.data) {
         user.value = response.data.data.user
-        token.value = response.data.data.token
+        accessToken.value = response.data.data.accessToken
         isAuthenticated.value = true
 
         // 保存到 localStorage
-        localStorage.setItem('token', response.data.data.token)
+        localStorage.setItem('accessToken', response.data.data.accessToken)
         localStorage.setItem('user', JSON.stringify(response.data.data.user))
 
         console.log('登录成功，用户信息:', user.value)
@@ -63,11 +63,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.data.code === 201 && response.data.data) {
         user.value = response.data.data.user
-        token.value = response.data.data.token
+        accessToken.value = response.data.data.accessToken
         isAuthenticated.value = true
 
         // 保存到 localStorage
-        localStorage.setItem('token', response.data.data.token)
+        localStorage.setItem('accessToken', response.data.data.accessToken)
         localStorage.setItem('user', JSON.stringify(response.data.data.user))
 
         console.log('注册成功，用户信息:', user.value)
@@ -96,9 +96,9 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('退出登录失败:', error)
     } finally {
       user.value = null
-      token.value = null
+      accessToken.value = null
       isAuthenticated.value = false
-      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken')
       localStorage.removeItem('user')
     }
   }
@@ -129,8 +129,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.refreshToken()
 
       if (response.data.code === 200 && response.data.data) {
-        token.value = response.data.data.token
-        localStorage.setItem('token', response.data.data.token)
+        accessToken.value = response.data.data.accessToken
+        localStorage.setItem('accessToken', response.data.data.accessToken)
       }
     } catch (error) {
       console.error('刷新令牌失败:', error)
@@ -140,7 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 检查认证状态
   const checkAuth = async () => {
-    if (token.value) {
+    if (accessToken.value) {
       try {
         await fetchUserProfile()
         isAuthenticated.value = true
@@ -166,7 +166,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
-    token,
+    accessToken,
     isAuthenticated,
     isLoading,
     login,

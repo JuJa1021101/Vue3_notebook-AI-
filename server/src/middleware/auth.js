@@ -1,4 +1,4 @@
-const { verifyToken } = require('../config/jwt');
+const { verifyAccessToken } = require('../config/jwt');
 const { unauthorized, forbidden } = require('../utils/response');
 const User = require('../models/User');
 
@@ -29,7 +29,7 @@ const authenticate = async (ctx, next) => {
     // 验证token
     let decoded;
     try {
-      decoded = verifyToken(token);
+      decoded = verifyAccessToken(token);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         return unauthorized(ctx, '认证令牌已过期');
@@ -72,7 +72,7 @@ const optionalAuth = async (ctx, next) => {
 
       if (token) {
         try {
-          const decoded = verifyToken(token);
+          const decoded = verifyAccessToken(token);
           const user = await User.findByPk(decoded.userId, {
             attributes: ['id', 'username', 'email', 'nickname', 'avatar_url']
           });

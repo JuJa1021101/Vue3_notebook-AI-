@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios'
 
 // 创建axios实例
 const request: AxiosInstance = axios.create({
@@ -40,13 +40,49 @@ const filterSensitiveData = (data: any): any => {
   return filtered
 }
 
+// 刷新Token的函数
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+const refreshToken = async (): Promise<string> => {
+  try {
+    const response = await axios.post('/api/auth/refresh', {}, {
+      // 不使用request实例，避免无限循环
+      timeout: 10000
+    });
+    
+    if (response.data.code === 200 && response.data.data?.accessToken) {
+      const newAccessToken = response.data.data.accessToken;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } else {
+      throw new Error('刷新令牌失败');
+    }
+  } catch (error) {
+    // 刷新失败，清除本地存储并跳转到登录页
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    window.location.href = '/auth/login';
+    throw error;
+  }
+};
+
+const addRefreshSubscriber = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+const notifyRefreshSubscribers = (token: string) => {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+};
+
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    // 从localStorage获取token
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // 从localStorage获取accessToken
+    const accessToken = localStorage.getItem('accessToken')
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
     }
 
     // 如果是 FormData，删除 Content-Type，让浏览器自动设置
@@ -87,7 +123,7 @@ request.interceptors.response.use(
     console.error('业务错误:', res.message)
     return Promise.reject(new Error(res.message || '请求失败'))
   },
-  (error) => {
+  async (error: AxiosError) => {
     console.error('响应错误:', error.message)
     console.error('错误详情:', {
       status: error.response?.status,
@@ -95,14 +131,45 @@ request.interceptors.response.use(
       url: error.config?.url
     })
 
-    // 处理401未授权 - 只在真正的认证失败时才重定向
-    if (error.response?.status === 401) {
-      const errorMessage = error.response?.data?.message || ''
-      // 只有在 token 无效或过期时才重定向
+    const originalRequest = error.config as any;
+    
+    // 处理401未授权 - 自动刷新token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const errorMessage = error.response?.data?.message || '';
+      
+      // 只有在 token 无效或过期时才处理
       if (errorMessage.includes('token') || errorMessage.includes('认证') || errorMessage.includes('登录')) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        window.location.href = '/auth/login'
+        // 标记请求已重试，避免无限循环
+        originalRequest._retry = true;
+        
+        if (!isRefreshing) {
+          isRefreshing = true;
+          
+          try {
+            // 刷新token
+            const newAccessToken = await refreshToken();
+            
+            // 更新所有等待中的请求
+            notifyRefreshSubscribers(newAccessToken);
+            
+            // 重试原始请求
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            return request(originalRequest);
+          } catch (refreshError) {
+            console.error('刷新token失败:', refreshError);
+            return Promise.reject(refreshError);
+          } finally {
+            isRefreshing = false;
+          }
+        } else {
+          // 正在刷新token，将请求加入队列
+          return new Promise((resolve) => {
+            addRefreshSubscriber((newAccessToken: string) => {
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+              resolve(request(originalRequest));
+            });
+          });
+        }
       }
     }
 

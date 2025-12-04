@@ -72,9 +72,8 @@ export interface RegisterRequest {
 
 export interface LoginResponse {
   user: User
-  token: string
-  refreshToken: string
-  expiresIn: number
+  accessToken: string
+  expiresIn?: number
 }
 
 export interface UpdateProfileRequest {

@@ -20,7 +20,22 @@ class AuthController {
 
       logger.info('User registered successfully', { userId: result.user.id, username: result.user.username });
 
-      created(ctx, result, '注册成功');
+      // 将refreshToken设置为HttpOnly cookie
+      ctx.cookies.set('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7天过期
+        path: '/api/auth/refresh' // 仅限refresh接口使用
+      });
+
+      // 返回accessToken，不返回refreshToken
+      const responseData = {
+        accessToken: result.accessToken,
+        user: result.user
+      };
+
+      created(ctx, responseData, '注册成功');
     } catch (err) {
       logger.error('Registration failed', { error: err.message, body: ctx.request.body });
 
@@ -49,7 +64,22 @@ class AuthController {
 
       logger.info('User logged in successfully', { userId: result.user.id, username: result.user.username });
 
-      success(ctx, result, '登录成功');
+      // 将refreshToken设置为HttpOnly cookie
+      ctx.cookies.set('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7天过期
+        path: '/api/auth/refresh' // 仅限refresh接口使用
+      });
+
+      // 返回accessToken，不返回refreshToken
+      const responseData = {
+        accessToken: result.accessToken,
+        user: result.user
+      };
+
+      success(ctx, responseData, '登录成功');
     } catch (err) {
       logger.error('Login failed', { error: err.message, username: ctx.request.body.username });
 
@@ -70,17 +100,38 @@ class AuthController {
    */
   static async refresh(ctx) {
     try {
-      const userId = ctx.state.userId;
+      // 从cookie获取refresh token
+      const refreshToken = ctx.cookies.get('refreshToken');
+      
+      if (!refreshToken) {
+        return unauthorized(ctx, '缺少刷新令牌');
+      }
 
-      logger.info('Token refresh attempt', { userId });
+      logger.info('Token refresh attempt from cookie');
+      
+      // 验证refresh token
+      const { verifyRefreshToken } = require('../config/jwt');
+      let decoded;
+      try {
+        decoded = verifyRefreshToken(refreshToken);
+      } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+          return unauthorized(ctx, '刷新令牌已过期');
+        } else if (error.name === 'JsonWebTokenError') {
+          return unauthorized(ctx, '刷新令牌无效');
+        } else {
+          return unauthorized(ctx, '刷新令牌验证失败');
+        }
+      }
 
-      const result = await AuthService.refreshToken(userId);
+      // 生成新的access token
+      const result = await AuthService.refreshToken(decoded.userId);
 
-      logger.info('Token refreshed successfully', { userId });
+      logger.info('Token refreshed successfully', { userId: decoded.userId });
 
       success(ctx, result, '令牌刷新成功');
     } catch (err) {
-      logger.error('Token refresh failed', { error: err.message, userId: ctx.state.userId });
+      logger.error('Token refresh failed', { error: err.message });
 
       if (err.message.includes('用户不存在')) {
         return unauthorized(ctx, '用户不存在');
@@ -98,6 +149,15 @@ class AuthController {
       const userId = ctx.state.userId;
 
       logger.info('User logout', { userId });
+
+      // 清除refreshToken cookie
+      ctx.cookies.set('refreshToken', null, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 0,
+        path: '/api/auth/refresh'
+      });
 
       // 这里可以实现令牌黑名单机制
       // 目前简单返回成功响应

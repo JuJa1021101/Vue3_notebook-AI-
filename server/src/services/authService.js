@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { generateToken } = require('../config/jwt');
+const { generateAccessToken, generateRefreshToken } = require('../config/jwt');
 const { validateRegister, validateLogin } = require('../utils/validation');
 const { initDefaultCategories } = require('../utils/initCategories');
 
@@ -53,15 +53,21 @@ class AuthService {
       // 不影响注册流程，继续执行
     }
 
-    // 生成JWT令牌
-    const token = generateToken({
+    // 生成双令牌
+    const accessToken = generateAccessToken({
       userId: user.id,
       username: user.username,
       email: user.email
     });
 
+    const refreshToken = generateRefreshToken({
+      userId: user.id,
+      username: user.username
+    });
+
     return {
-      token,
+      accessToken,
+      refreshToken,
       user: user.toSafeObject()
     };
   }
@@ -91,15 +97,21 @@ class AuthService {
       throw new Error('用户名或密码错误');
     }
 
-    // 生成JWT令牌
-    const token = generateToken({
+    // 生成双令牌
+    const accessToken = generateAccessToken({
       userId: user.id,
       username: user.username,
       email: user.email
     });
 
+    const refreshToken = generateRefreshToken({
+      userId: user.id,
+      username: user.username
+    });
+
     return {
-      token,
+      accessToken,
+      refreshToken,
       user: user.toSafeObject()
     };
   }
@@ -114,14 +126,14 @@ class AuthService {
       throw new Error('用户不存在');
     }
 
-    // 生成新的JWT令牌
-    const token = generateToken({
+    // 生成新的Access Token
+    const accessToken = generateAccessToken({
       userId: user.id,
       username: user.username,
       email: user.email
     });
 
-    return { token };
+    return { accessToken };
   }
 
   /**
